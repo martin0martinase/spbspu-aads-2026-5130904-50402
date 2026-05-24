@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <functional>
 #include <utility>
-#include <string>
 
 namespace chernikov {
 
@@ -62,7 +61,7 @@ namespace chernikov {
       }
     }
 
-    ble(HashTable &&other) noexcept:
+    HashTable(HashTable &&other) noexcept:
       buckets_(other.buckets_),
       bucket_count_(other.bucket_count_),
       element_count_(other.element_count_),
@@ -106,6 +105,8 @@ namespace chernikov {
       return *this;
     }
 
+    // ==================== ОСНОВНЫЕ МЕТОДЫ ====================
+
     void add(const Key &k, const Value &v)
     {
       if (element_count_ >= max_elements_)
@@ -121,7 +122,8 @@ namespace chernikov {
             return;
           }
         }
-        throw std::overflow_error("HashTable overflow: maximum elements reached");
+
+        throw std::overflow_error("HashTable overflow");
       }
 
       size_type index = bucket_index(k);
@@ -135,6 +137,7 @@ namespace chernikov {
           return;
         }
       }
+
       bucket.add(BucketValue(k, v));
       ++element_count_;
     }
@@ -143,6 +146,7 @@ namespace chernikov {
     {
       size_type index = bucket_index(k);
       Bucket &bucket = buckets_[index];
+
       Bucket new_bucket;
       Value removed_value;
       bool found = false;
@@ -159,13 +163,16 @@ namespace chernikov {
           new_bucket.push_back(*it);
         }
       }
+
       if (!found)
       {
-        throw std::out_of_range("Key not found in HashTable::drop()");
+        throw std::out_of_range("Key not found");
       }
+
       bucket = std::move(new_bucket);
       return removed_value;
     }
+
     bool has(const Key &k) const
     {
       size_type index = bucket_index(k);
@@ -180,6 +187,7 @@ namespace chernikov {
       }
       return false;
     }
+
     Value &get(const Key &k)
     {
       size_type index = bucket_index(k);
@@ -192,13 +200,14 @@ namespace chernikov {
           return (*it).second;
         }
       }
-      throw std::out_of_range("Key not found in HashTable::get()");
+      throw std::out_of_range("Key not found");
     }
 
     const Value &get(const Key &k) const
     {
       return const_cast< HashTable * >(this)->get(k);
     }
+
     void rehash(size_t slots)
     {
       if (slots == 0)
@@ -237,22 +246,21 @@ namespace chernikov {
       element_count_ = 0;
     }
 
-    void set_max_elements(size_type max)
-    {
-      max_elements_ = max;
-    }
+    // ==================== ИНФОРМАЦИОННЫЕ МЕТОДЫ ====================
 
     size_type size() const
     {
       return element_count_;
     }
-    size_type bucket_count() const
-    {
-      return bucket_count_;
-    }
+
     bool empty() const
     {
       return element_count_ == 0;
+    }
+
+    size_type bucket_count() const
+    {
+      return bucket_count_;
     }
 
     float load_factor() const
@@ -260,6 +268,11 @@ namespace chernikov {
       if (bucket_count_ == 0)
         return 0.0f;
       return static_cast< float >(element_count_) / bucket_count_;
+    }
+
+    void set_max_elements(size_type max)
+    {
+      max_elements_ = max;
     }
 
     Value &operator[](const Key &k)
@@ -270,6 +283,8 @@ namespace chernikov {
       }
       return get(k);
     }
+
+    // ==================== ИТЕРАТОР ====================
 
     class Iterator
     {
@@ -350,12 +365,8 @@ namespace chernikov {
     {
       return Iterator(buckets_, bucket_count_, true);
     }
-
-    const Bucket &get_bucket(size_type index) const
-    {
-      return buckets_[index];
-    }
   };
 
 }
+
 #endif
