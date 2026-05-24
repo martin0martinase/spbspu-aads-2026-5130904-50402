@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
         return 1;
       }
     }
+
     if (!results.empty())
     {
       for (auto it = results.rbegin(); it != results.rend(); ++it)
