@@ -1,5 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include "hash_table.hpp"
+#include "graph.hpp"
 #include <string>
 #include <stdexcept>
 
@@ -44,5 +45,53 @@ namespace chernikov {
     BOOST_CHECK(!ht.has("key1"));
     BOOST_CHECK_EQUAL(ht.size(), 1);
   }
+
+  BOOST_AUTO_TEST_SUITE_END()
+
+  BOOST_AUTO_TEST_SUITE(GraphTests)
+
+  BOOST_AUTO_TEST_CASE(GraphCreation)
+  {
+    Graph g("test");
+    BOOST_CHECK_EQUAL(g.getName(), "test");
+    BOOST_CHECK_EQUAL(g.edgeCount(), 0);
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphDefaultConstructor)
+  {
+    Graph g;
+    BOOST_CHECK_EQUAL(g.getName(), "");
+    BOOST_CHECK_EQUAL(g.edgeCount(), 0);
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphSetName)
+  {
+    Graph g;
+    g.setName("new_name");
+    BOOST_CHECK_EQUAL(g.getName(), "new_name");
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphAddEdge)
+  {
+    Graph g("test");
+    g.addEdge("A", "B", 5);
+    BOOST_CHECK(g.hasVertex("A"));
+    BOOST_CHECK(g.hasVertex("B"));
+    BOOST_CHECK(!g.hasVertex("C"));
+    BOOST_CHECK_EQUAL(g.edgeCount(), 1);
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphAddMultipleEdges)
+  {
+    Graph g("test");
+    g.addEdge("A", "B", 1);
+    g.addEdge("A", "B", 2);
+    g.addEdge("A", "C", 3);
+    BOOST_CHECK(g.hasVertex("A"));
+    BOOST_CHECK(g.hasVertex("B"));
+    BOOST_CHECK(g.hasVertex("C"));
+  }
+
+  BOOST_AUTO_TEST_SUITE_END()
 
 }
