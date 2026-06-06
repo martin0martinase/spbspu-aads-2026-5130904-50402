@@ -2,6 +2,8 @@
 #include "hash_table.hpp"
 #include "graph.hpp"
 #include <string>
+#include <fstream>
+#include <cstdio>
 #include <stdexcept>
 
 namespace chernikov {
