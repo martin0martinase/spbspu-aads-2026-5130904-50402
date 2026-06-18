@@ -3,18 +3,19 @@
 #include "Queue.hpp"
 #include "Expression.hpp"
 
-namespace chernikov {
+namespace chernikov
+{
   BOOST_AUTO_TEST_SUITE(StackTests)
 
   BOOST_AUTO_TEST_CASE(StackEmptyInitially)
   {
-    Stack< int > stack;
+    Stack<int> stack;
     BOOST_CHECK(stack.empty());
     BOOST_CHECK_EQUAL(stack.size(), 0);
   }
   BOOST_AUTO_TEST_CASE(StackPushAndTop)
   {
-    Stack< int > stack;
+    Stack<int> stack;
     stack.push(42);
     BOOST_CHECK(!stack.empty());
     BOOST_CHECK_EQUAL(stack.size(), 1);
@@ -22,7 +23,7 @@ namespace chernikov {
   }
   BOOST_AUTO_TEST_CASE(StackPushMultipleElements)
   {
-    Stack< int > stack;
+    Stack<int> stack;
     stack.push(10);
     stack.push(20);
     stack.push(30);
@@ -31,7 +32,7 @@ namespace chernikov {
   }
   BOOST_AUTO_TEST_CASE(StackDropRemovesTop)
   {
-    Stack< int > stack;
+    Stack<int> stack;
     stack.push(100);
     stack.push(200);
     stack.push(300);
@@ -42,7 +43,7 @@ namespace chernikov {
   }
   BOOST_AUTO_TEST_CASE(StackLIFO)
   {
-    Stack< int > stack;
+    Stack<int> stack;
     stack.push(1);
     stack.push(2);
     stack.push(3);
@@ -58,13 +59,13 @@ namespace chernikov {
 
   BOOST_AUTO_TEST_CASE(QueueEmptyInitially)
   {
-    Queue< int > queue;
+    Queue<int> queue;
     BOOST_CHECK(queue.empty());
     BOOST_CHECK_EQUAL(queue.size(), 0);
   }
   BOOST_AUTO_TEST_CASE(QueuePushAndFront)
   {
-    Queue< int > queue;
+    Queue<int> queue;
     queue.push(42);
     BOOST_CHECK(!queue.empty());
     BOOST_CHECK_EQUAL(queue.size(), 1);
@@ -72,7 +73,7 @@ namespace chernikov {
   }
   BOOST_AUTO_TEST_CASE(QueuePushMultipleElements)
   {
-    Queue< int > queue;
+    Queue<int> queue;
     queue.push(10);
     queue.push(20);
     queue.push(30);
@@ -81,7 +82,7 @@ namespace chernikov {
   }
   BOOST_AUTO_TEST_CASE(QueueDropRemovesFront)
   {
-    Queue< int > queue;
+    Queue<int> queue;
     queue.push(100);
     queue.push(200);
     queue.push(300);
@@ -92,7 +93,7 @@ namespace chernikov {
   }
   BOOST_AUTO_TEST_CASE(QueueFIFO)
   {
-    Queue< int > queue;
+    Queue<int> queue;
     queue.push(1);
     queue.push(2);
     queue.push(3);
@@ -148,9 +149,9 @@ namespace chernikov {
 
   BOOST_AUTO_TEST_SUITE(InfixToPostfixTests)
 
-  std::vector< std::string > queueToVector(Queue< std::string > &queue)
+  std::vector<std::string> queueToVector(Queue<std::string> &queue)
   {
-    std::vector< std::string > result;
+    std::vector<std::string> result;
     while (!queue.empty())
     {
       result.push_back(queue.drop());
@@ -161,54 +162,54 @@ namespace chernikov {
   BOOST_AUTO_TEST_CASE(SimpleAddition)
   {
     std::string expr = "1 + 2";
-    Queue< std::string > postfix = infixToPostfix(expr);
-    std::vector< std::string > result = queueToVector(postfix);
-    std::vector< std::string > expected = {"1", "2", "+"};
+    Queue<std::string> postfix = infixToPostfix(expr);
+    std::vector<std::string> result = queueToVector(postfix);
+    std::vector<std::string> expected = {"1", "2", "+"};
     BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected.begin(), expected.end());
   }
 
   BOOST_AUTO_TEST_CASE(SimpleSubtraction)
   {
     std::string expr = "5 - 3";
-    Queue< std::string > postfix = infixToPostfix(expr);
-    std::vector< std::string > result = queueToVector(postfix);
-    std::vector< std::string > expected = {"5", "3", "-"};
+    Queue<std::string> postfix = infixToPostfix(expr);
+    std::vector<std::string> result = queueToVector(postfix);
+    std::vector<std::string> expected = {"5", "3", "-"};
     BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected.begin(), expected.end());
   }
 
   BOOST_AUTO_TEST_CASE(SimpleMultiplication)
   {
     std::string expr = "4 * 5";
-    Queue< std::string > postfix = infixToPostfix(expr);
-    std::vector< std::string > result = queueToVector(postfix);
-    std::vector< std::string > expected = {"4", "5", "*"};
+    Queue<std::string> postfix = infixToPostfix(expr);
+    std::vector<std::string> result = queueToVector(postfix);
+    std::vector<std::string> expected = {"4", "5", "*"};
     BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected.begin(), expected.end());
   }
 
   BOOST_AUTO_TEST_CASE(SimpleDivision)
   {
     std::string expr = "10 / 2";
-    Queue< std::string > postfix = infixToPostfix(expr);
-    std::vector< std::string > result = queueToVector(postfix);
-    std::vector< std::string > expected = {"10", "2", "/"};
+    Queue<std::string> postfix = infixToPostfix(expr);
+    std::vector<std::string> result = queueToVector(postfix);
+    std::vector<std::string> expected = {"10", "2", "/"};
     BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected.begin(), expected.end());
   }
 
   BOOST_AUTO_TEST_CASE(SimpleModulo)
   {
     std::string expr = "10 % 3";
-    Queue< std::string > postfix = infixToPostfix(expr);
-    std::vector< std::string > result = queueToVector(postfix);
-    std::vector< std::string > expected = {"10", "3", "%"};
+    Queue<std::string> postfix = infixToPostfix(expr);
+    std::vector<std::string> result = queueToVector(postfix);
+    std::vector<std::string> expected = {"10", "3", "%"};
     BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected.begin(), expected.end());
   }
 
   BOOST_AUTO_TEST_CASE(OperatorPrecedence)
   {
     std::string expr = "1 + 2 * 3";
-    Queue< std::string > postfix = infixToPostfix(expr);
-    std::vector< std::string > result = queueToVector(postfix);
-    std::vector< std::string > expected = {"1", "2", "3", "*", "+"};
+    Queue<std::string> postfix = infixToPostfix(expr);
+    std::vector<std::string> result = queueToVector(postfix);
+    std::vector<std::string> expected = {"1", "2", "3", "*", "+"};
     BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected.begin(), expected.end());
   }
 

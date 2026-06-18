@@ -4,12 +4,14 @@
 #include "List.hpp"
 #include <stdexcept>
 
-namespace chernikov {
+namespace chernikov
+{
 
-  template < typename T > class Stack
+  template <typename T>
+  class Stack
   {
   private:
-    List< T > data;
+    List<T> data;
 
   public:
     Stack() = default;
@@ -21,29 +23,34 @@ namespace chernikov {
     T &top();
   };
 
-  template < typename T > bool Stack< T >::empty() const
+  template <typename T>
+  bool Stack<T>::empty() const
   {
     return data.empty();
   }
-  template < typename T > size_t Stack< T >::size() const
+  template <typename T>
+  size_t Stack<T>::size() const
   {
     return data.size();
   }
-  template < typename T > void Stack< T >::push(const T &val)
+  template <typename T>
+  void Stack<T>::push(const T &val)
   {
     data.add(val);
   }
-  template < typename T > T Stack< T >::drop()
+  template <typename T>
+  T Stack<T>::drop()
   {
     if (empty())
     {
       throw std::logic_error("Stack is empty");
     }
-    T val = data.front();
+    T val = std::move(data.front());
     data.first_delete();
     return val;
   }
-  template < typename T > const T &Stack< T >::top() const
+  template <typename T>
+  const T &Stack<T>::top() const
   {
     if (empty())
     {
@@ -51,7 +58,8 @@ namespace chernikov {
     }
     return data.front();
   }
-  template < typename T > T &Stack< T >::top()
+  template <typename T>
+  T &Stack<T>::top()
   {
     if (empty())
     {
