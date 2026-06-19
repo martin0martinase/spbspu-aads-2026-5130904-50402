@@ -111,12 +111,12 @@ namespace chernikov
     {
       return &ptr->data;
     }
-    LCIter &operator++() // префикс
+    LCIter &operator++()
     {
       ptr = ptr->next;
       return *this;
     }
-    LCIter operator++(int) // постфикс
+    LCIter operator++(int)
     {
       LCIter tmp(*this);
       ptr = ptr->next;
@@ -231,8 +231,10 @@ namespace chernikov
       std::swap(count, other.count);
     }
     void add(const T &val);
+    void add(T &&val);
     LIter<T> insert_after(LIter<T> pos, const T &value);
     void push_back(const T &value);
+    void push_back(T &&val);
     void first_delete();
     void back_delete();
     void clear();
@@ -289,7 +291,7 @@ namespace chernikov
     return LIter<T>(new_node);
   }
   template <typename T>
-  void push_back(const T &val)
+  void List<T>::push_back(const T &val)
   {
     Node<T> *new_node = new Node<T>(val, nullptr);
     if (!head)
@@ -308,7 +310,7 @@ namespace chernikov
     ++count;
   }
   template <typename T>
-  void push_back(T &&val)
+  void List<T>::push_back(T &&val)
   {
     Node<T> *new_node = new Node<T>(std::move(val), nullptr);
     if (!head)
@@ -327,13 +329,13 @@ namespace chernikov
     ++count;
   }
   template <typename T>
-  void add(const T &val)
+  void chernikov::List<T>::add(const T &val)
   {
     head = new Node<T>(val, head);
     ++count;
   }
   template <typename T>
-  void add(T &&val)
+  void List<T>::add(T &&val)
   {
     head = new Node<T>(std::move(val), head);
     ++count;

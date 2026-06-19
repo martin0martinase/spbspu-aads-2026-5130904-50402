@@ -11,274 +11,273 @@
 
 namespace chernikov
 {
-  Queue<std::string> infixToPostfix(const std::string &expression);
-  long long evaluatePostfix(Queue<std::string> &postfix);
-  long long evaluateExpression(const std::string &expression);
-}
-inline bool willAddOverflow(long long a, long long b)
-{
-  if (b > 0 && a > std::numeric_limits<long long>::max() - b)
+  namespace detail
   {
-    return true;
-  }
-  if (b < 0 && a < std::numeric_limits<long long>::min() - b)
-  {
-    return true;
-  }
-  return false;
-}
-
-inline bool willSubOverflow(long long a, long long b)
-{
-  if (b < 0 && a > std::numeric_limits<long long>::max() + b)
-  {
-    return true;
-  }
-  if (b > 0 && a < std::numeric_limits<long long>::min() + b)
-  {
-    return true;
-  }
-  return false;
-}
-
-inline bool willMulOverflow(long long a, long long b)
-{
-  if (a == 0 || b == 0)
-  {
-    return false;
-  }
-  if (a > 0 && b > 0 && a > std::numeric_limits<long long>::max() / b)
-  {
-    return true;
-  }
-  if (a > 0 && b < 0 && b < std::numeric_limits<long long>::min() / a)
-  {
-    return true;
-  }
-  if (a < 0 && b > 0 && a < std::numeric_limits<long long>::min() / b)
-  {
-    return true;
-  }
-  if (a < 0 && b < 0 && a < std::numeric_limits<long long>::max() / b)
-  {
-    return true;
-  }
-  return false;
-}
-
-inline int getPriority(char operation)
-{
-  switch (operation)
-  {
-  case '+':
-  case '-':
-    return 1;
-  case '*':
-  case '/':
-  case '%':
-    return 2;
-  default:
-    return 0;
-  }
-}
-
-inline bool isNumber(const std::string &str)
-{
-  if (str.empty())
-  {
-    return false;
-  }
-  size_t first = (str[0] == '-') ? 1 : 0;
-  if (first >= str.size())
-  {
-    return false;
-  }
-  for (size_t i = first; i < str.size(); ++i)
-  {
-    if (!std::isdigit(str[i]))
+    inline bool willAddOverflow(long long a, long long b)
     {
+      if (b > 0 && a > std::numeric_limits<long long>::max() - b)
+      {
+        return true;
+      }
+      if (b < 0 && a < std::numeric_limits<long long>::min() - b)
+      {
+        return true;
+      }
       return false;
     }
-  }
-  return true;
-}
 
-inline bool isOperator(const std::string &token)
-{
-  return token == "+" || token == "-" || token == "*" ||
-         token == "/" || token == "%";
-}
-
-Queue<std::string> infixToPostfix(const std::string &expression)
-{
-  std::istringstream iss(expression);
-  std::string token;
-  Stack<char> operators;
-  Queue<std::string> output;
-
-  while (iss >> token)
-  {
-    if (isNumber(token))
+    inline bool willSubOverflow(long long a, long long b)
     {
-      output.push(token);
-    }
-    else if (token == "(")
-    {
-      operators.push('(');
-    }
-    else if (token == ")")
-    {
-      while (!operators.empty() && operators.top() != '(')
+      if (b < 0 && a > std::numeric_limits<long long>::max() + b)
       {
-        output.push(std::string(1, operators.drop()));
+        return true;
       }
-      if (operators.empty())
+      if (b > 0 && a < std::numeric_limits<long long>::min() + b)
       {
-        throw std::logic_error("Incorrect close bracket or missed open bracket");
+        return true;
       }
-      operators.drop();
+      return false;
     }
-    else if (isOperator(token))
+
+    inline bool willMulOverflow(long long a, long long b)
     {
-      char op = token[0];
-      while (!operators.empty() && operators.top() != '(' &&
-             getPriority(operators.top()) >= getPriority(op))
+      if (a == 0 || b == 0)
       {
-        output.push(std::string(1, operators.drop()));
+        return false;
       }
-      operators.push(op);
-    }
-    else
-    {
-      throw std::logic_error("Invalid token: " + token);
-    }
-  }
-
-  while (!operators.empty())
-  {
-    if (operators.top() == '(')
-    {
-      throw std::logic_error("Incorrect open bracket or missed close bracket");
-    }
-    output.push(std::string(1, operators.drop()));
-  }
-
-  return output;
-}
-
-inline long long modPositive(long long a, long long b)
-{
-  long long result = a % b;
-  if (result < 0)
-  {
-    result += b;
-  }
-  return result;
-}
-
-long long evaluatePostfix(Queue<std::string> &postfix)
-{
-  Stack<long long> values;
-
-  while (!postfix.empty())
-  {
-    std::string token = postfix.drop();
-
-    if (isNumber(token))
-    {
-      try
+      if (a > 0 && b > 0 && a > std::numeric_limits<long long>::max() / b)
       {
-        long long value = std::stoll(token);
-        values.push(value);
+        return true;
       }
-      catch (const std::out_of_range &)
+      if (a > 0 && b < 0 && b < std::numeric_limits<long long>::min() / a)
       {
-        throw std::logic_error("Number out of range: " + token);
+        return true;
       }
+      if (a < 0 && b > 0 && a < std::numeric_limits<long long>::min() / b)
+      {
+        return true;
+      }
+      if (a < 0 && b < 0 && a < std::numeric_limits<long long>::max() / b)
+      {
+        return true;
+      }
+      return false;
     }
-    else if (isOperator(token))
+
+    inline int getPriority(char operation)
     {
-      if (values.size() < 2)
-      {
-        throw std::logic_error("Not enough operands");
-      }
-
-      long long b = values.drop();
-      long long a = values.drop();
-      long long result = 0;
-
-      switch (token[0])
+      switch (operation)
       {
       case '+':
-        if (willAddOverflow(a, b))
-        {
-          throw std::logic_error("Addition overflow");
-        }
-        result = a + b;
-        break;
-
       case '-':
-        if (willSubOverflow(a, b))
-        {
-          throw std::logic_error("Subtraction overflow");
-        }
-        result = a - b;
-        break;
-
+        return 1;
       case '*':
-        if (willMulOverflow(a, b))
-        {
-          throw std::logic_error("Multiplication overflow");
-        }
-        result = a * b;
-        break;
-
       case '/':
-        if (b == 0)
-        {
-          throw std::logic_error("Division by zero");
-        }
-        result = a / b;
-        break;
-
       case '%':
-        if (b == 0)
-        {
-          throw std::logic_error("Modulo by zero");
-        }
-        result = modPositive(a, b);
-        break;
-
+        return 2;
       default:
-        throw std::logic_error("Unknown operator");
+        return 0;
+      }
+    }
+
+    inline bool isNumber(const std::string &str)
+    {
+      if (str.empty())
+      {
+        return false;
+      }
+      size_t first = (str[0] == '-') ? 1 : 0;
+      if (first >= str.size())
+      {
+        return false;
+      }
+      for (size_t i = first; i < str.size(); ++i)
+      {
+        if (!std::isdigit(str[i]))
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    inline bool isOperator(const std::string &token)
+    {
+      return token == "+" || token == "-" || token == "*" ||
+             token == "/" || token == "%";
+    }
+
+    inline long long modPositive(long long a, long long b)
+    {
+      long long result = a % b;
+      if (result < 0)
+      {
+        result += b;
+      }
+      return result;
+    }
+
+    Queue<std::string> infixToPostfix(const std::string &expression)
+    {
+      std::istringstream iss(expression);
+      std::string token;
+      Stack<char> operators;
+      Queue<std::string> output;
+
+      while (iss >> token)
+      {
+        if (isNumber(token))
+        {
+          output.push(token);
+        }
+        else if (token == "(")
+        {
+          operators.push('(');
+        }
+        else if (token == ")")
+        {
+          while (!operators.empty() && operators.top() != '(')
+          {
+            output.push(std::string(1, operators.drop()));
+          }
+          if (operators.empty())
+          {
+            throw std::logic_error("Incorrect close bracket or missed open bracket");
+          }
+          operators.drop();
+        }
+        else if (isOperator(token))
+        {
+          char op = token[0];
+          while (!operators.empty() && operators.top() != '(' &&
+                 getPriority(operators.top()) >= getPriority(op))
+          {
+            output.push(std::string(1, operators.drop()));
+          }
+          operators.push(op);
+        }
+        else
+        {
+          throw std::logic_error("Invalid token: " + token);
+        }
       }
 
-      values.push(result);
+      while (!operators.empty())
+      {
+        if (operators.top() == '(')
+        {
+          throw std::logic_error("Incorrect open bracket or missed close bracket");
+        }
+        output.push(std::string(1, operators.drop()));
+      }
+
+      return output;
     }
-    else
+
+    long long evaluatePostfix(Queue<std::string> &postfix)
     {
-      throw std::logic_error("Invalid token: " + token);
+      Stack<long long> values;
+
+      while (!postfix.empty())
+      {
+        std::string token = postfix.drop();
+
+        if (isNumber(token))
+        {
+          try
+          {
+            long long value = std::stoll(token);
+            values.push(value);
+          }
+          catch (const std::out_of_range &)
+          {
+            throw std::logic_error("Number out of range: " + token);
+          }
+        }
+        else if (isOperator(token))
+        {
+          if (values.size() < 2)
+          {
+            throw std::logic_error("Not enough operands");
+          }
+
+          long long b = values.drop();
+          long long a = values.drop();
+          long long result = 0;
+
+          switch (token[0])
+          {
+          case '+':
+            if (willAddOverflow(a, b))
+            {
+              throw std::logic_error("Addition overflow");
+            }
+            result = a + b;
+            break;
+
+          case '-':
+            if (willSubOverflow(a, b))
+            {
+              throw std::logic_error("Subtraction overflow");
+            }
+            result = a - b;
+            break;
+
+          case '*':
+            if (willMulOverflow(a, b))
+            {
+              throw std::logic_error("Multiplication overflow");
+            }
+            result = a * b;
+            break;
+
+          case '/':
+            if (b == 0)
+            {
+              throw std::logic_error("Division by zero");
+            }
+            result = a / b;
+            break;
+
+          case '%':
+            if (b == 0)
+            {
+              throw std::logic_error("Modulo by zero");
+            }
+            result = modPositive(a, b);
+            break;
+
+          default:
+            throw std::logic_error("Unknown operator");
+          }
+
+          values.push(result);
+        }
+        else
+        {
+          throw std::logic_error("Invalid token: " + token);
+        }
+      }
+
+      if (values.size() != 1)
+      {
+        throw std::logic_error("Invalid expression");
+      }
+
+      return values.drop();
     }
   }
 
-  if (values.size() != 1)
+  inline long long evaluateExpression(const std::string &expression)
   {
-    throw std::logic_error("Invalid expression");
+    if (expression.empty() || expression.find_first_not_of(" \t") == std::string::npos)
+    {
+      throw std::logic_error("Empty expression");
+    }
+
+    Queue<std::string> postfix = detail::infixToPostfix(expression);
+    return detail::evaluatePostfix(postfix);
   }
-
-  return values.drop();
-}
-
-inline long long evaluateExpression(const std::string &expression)
-{
-  if (expression.empty() || expression.find_first_not_of(" \t") == std::string::npos)
-  {
-    throw std::logic_error("Empty expression");
-  }
-
-  Queue<std::string> postfix = infixToPostfix(expression);
-  return evaluatePostfix(postfix);
-}
 }
 
 #endif
