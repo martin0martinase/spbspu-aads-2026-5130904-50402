@@ -2,207 +2,269 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <cmath>
 #include "fits_file.h"
 #include "quad_tree.h"
 
-double getFitsPixel(void *context, int x, int y)
-{
-  FitsFile *fits = static_cast<FitsFile *>(context);
-  return fits->getPixelAsDouble(x, y);
+double getFitsPixel(void* context, int x, int y) {
+    FitsFile* fits = static_cast<FitsFile*>(context);
+    return fits->getPixelAsDouble(x, y);
 }
 
-void printHistogram(FitsFile &fits, int bins = 20)
-{
-  double minVal = fits.computeMin();
-  double maxVal = fits.computeMax();
-  double binWidth = (maxVal - minVal) / bins;
-
-  std::vector<int> histogram(bins, 0);
-  int maxCount = 0;
-
-  for (int y = 0; y < fits.height; y++)
-  {
-    for (int x = 0; x < fits.width; x++)
-    {
-      double val = fits.getPixelAsDouble(x, y);
-      int bin = static_cast<int>((val - minVal) / binWidth);
-      if (bin >= bins)
-        bin = bins - 1;
-      if (bin < 0)
-        bin = 0;
-      histogram[bin]++;
-      if (histogram[bin] > maxCount)
-        maxCount = histogram[bin];
+void printHistogram(FitsFile& fits, int bins = 20) {
+    if (fits.totalPixels() == 0) {
+        std::cout << "No data to display histogram." << std::endl;
+        return;
     }
-  }
-
-  // ASCII-гистограмма
-  int maxBarWidth = 50;
-  std::cout << "\nHistogram (" << bins << " bins):\n";
-  std::cout << "Range: [" << minVal << ", " << maxVal << "]\n\n";
-
-  for (int i = 0; i < bins; i++)
-  {
-    double binStart = minVal + i * binWidth;
-    std::cout << std::setw(10) << std::fixed << std::setprecision(2) << binStart << " | ";
-    int barWidth = (maxCount > 0) ? (histogram[i] * maxBarWidth / maxCount) : 0;
-    for (int j = 0; j < barWidth; j++)
-      std::cout << "#";
-    std::cout << " (" << histogram[i] << ")\n";
-  }
+    
+    double minVal = fits.computeMin();
+    double maxVal = fits.computeMax();
+    
+    if (minVal == maxVal) {
+        std::cout << "\nHistogram: All pixels have value " << minVal << std::endl;
+        return;
+    }
+    
+    double binWidth = (maxVal - minVal) / bins;
+    
+    std::vector<int> histogram(bins, 0);
+    int maxCount = 0;
+    
+    for (int y = 0; y < fits.height; y++) {
+        for (int x = 0; x < fits.width; x++) {
+            double val = fits.getPixelAsDouble(x, y);
+            int bin = static_cast<int>((val - minVal) / binWidth);
+            if (bin >= bins) bin = bins - 1;
+            if (bin < 0) bin = 0;
+            histogram[bin]++;
+            if (histogram[bin] > maxCount) maxCount = histogram[bin];
+        }
+    }
+    
+    int maxBarWidth = 60;
+    std::cout << "\n=== Histogram (" << bins << " bins) ===" << std::endl;
+    std::cout << "Range: [" << minVal << ", " << maxVal << "]" << std::endl;
+    std::cout << "Total pixels: " << fits.totalPixels() << std::endl << std::endl;
+    
+    for (int i = 0; i < bins; i++) {
+        double binStart = minVal + i * binWidth;
+        double binEnd = binStart + binWidth;
+        std::cout << std::fixed << std::setprecision(1)
+                  << "[" << std::setw(8) << binStart << " - " << std::setw(8) << binEnd << "] | ";
+        int barWidth = (maxCount > 0) ? (histogram[i] * maxBarWidth / maxCount) : 0;
+        for (int j = 0; j < barWidth; j++) std::cout << "#";
+        std::cout << " " << histogram[i] << std::endl;
+    }
+    std::cout << std::endl;
 }
 
-int main()
-{
-  FitsFile currentFile;
-  QuadTree quadTree;
-  bool treeBuilt = false;
+void printHelp() {
+    std::cout << "\n";
+    std::cout << "Available commands:\n";
+    std::cout << "  LOAD <file>        - Load FITS file\n";
+    std::cout << "  SAVE <file>        - Save current data to FITS file\n";
+    std::cout << "  HEADER             - Print all header keywords\n";
+    std::cout << "  INFO               - Print file information\n";
+    std::cout << "  STAT               - Print statistics (min, max, mean, stddev)\n";
+    std::cout << "  HISTOGRAM          - Display ASCII histogram\n";
+    std::cout << "  BUILD_TREE         - Build Quad-Tree spatial index\n";
+    std::cout << "  GET_PIXEL <x> <y>  - Get pixel value at (x,y) via Quad-Tree\n";
+    std::cout << "  FIND_SOURCES <s>   - Find pixels brighter than mean + s*stddev\n";
+    std::cout << "  CALIBRATE <dark>   - Subtract dark frame\n";
+    std::cout << "  HELP               - Show this message\n";
+    std::cout << "  EXIT               - Exit program\n";
+    std::cout << "\n";
+}
 
-  std::cout << "FITS Analyzer v0.1\n";
-  std::cout << "Commands: LOAD, HEADER, INFO, STAT, HISTOGRAM, BUILD_TREE, GET_PIXEL, FIND_SOURCES, SAVE, EXIT\n\n";
-
-  std::string line;
-  while (true)
-  {
-    std::cout << "> ";
-    std::getline(std::cin, line);
-    std::istringstream iss(line);
-    std::string cmd;
-    iss >> cmd;
-
-    if (cmd == "LOAD")
-    {
-      std::string filename;
-      iss >> filename;
-      if (!filename.empty())
-      {
-        currentFile.load(filename);
-        treeBuilt = false;
-      }
-      else
-      {
-        std::cout << "Usage: LOAD filename.fit\n";
-      }
+int main() {
+    FitsFile currentFile;
+    QuadTree quadTree;
+    bool treeBuilt = false;
+    
+    std::cout << "╔══════════════════════════════════════╗" << std::endl;
+    std::cout << "║      FITS Image Analyzer v1.0        ║" << std::endl;
+    std::cout << "║  Binary Search Tree + Quad-Tree      ║" << std::endl;
+    std::cout << "╚══════════════════════════════════════╝" << std::endl;
+    std::cout << "Type HELP for available commands.\n" << std::endl;
+    
+    std::string line;
+    while (true) {
+        std::cout << "> ";
+        std::getline(std::cin, line);
+        if (line.empty()) continue;
+        
+        std::istringstream iss(line);
+        std::string cmd;
+        iss >> cmd;
+ 
+        for (auto& c : cmd) c = static_cast<char>(std::toupper(c));
+        
+        if (cmd == "LOAD") {
+            std::string filename;
+            iss >> filename;
+            if (!filename.empty()) {
+                if (currentFile.load(filename)) {
+                    treeBuilt = false; 
+                }
+            } else {
+                std::cout << "Usage: LOAD <filename>" << std::endl;
+            }
+        }
+        else if (cmd == "HEADER") {
+            if (!currentFile.loaded) {
+                std::cout << "No file loaded." << std::endl;
+                continue;
+            }
+            std::cout << "\n=== FITS Header ===" << std::endl;
+            currentFile.header.printInOrder();
+            std::cout << "=== End of Header ===\n" << std::endl;
+        }
+        else if (cmd == "INFO") {
+            currentFile.printInfo();
+        }
+        else if (cmd == "STAT") {
+            if (!currentFile.loaded) {
+                std::cout << "No file loaded." << std::endl;
+                continue;
+            }
+            std::cout << "\n=== Statistics ===" << std::endl;
+            std::cout << std::fixed << std::setprecision(6);
+            std::cout << "  Min:    " << std::setw(15) << currentFile.computeMin() << std::endl;
+            std::cout << "  Max:    " << std::setw(15) << currentFile.computeMax() << std::endl;
+            std::cout << "  Mean:   " << std::setw(15) << currentFile.computeMean() << std::endl;
+            std::cout << "  StdDev: " << std::setw(15) << currentFile.computeStdDev() << std::endl;
+            std::cout << "==================\n" << std::endl;
+        }
+        else if (cmd == "HISTOGRAM" || cmd == "HIST") {
+            if (!currentFile.loaded) {
+                std::cout << "No file loaded." << std::endl;
+                continue;
+            }
+            printHistogram(currentFile);
+        }
+        else if (cmd == "BUILD_TREE" || cmd == "BUILD") {
+            if (!currentFile.loaded) {
+                std::cout << "No file loaded." << std::endl;
+                continue;
+            }
+            if (currentFile.totalPixels() == 0) {
+                std::cout << "No pixel data to build tree." << std::endl;
+                continue;
+            }
+            std::cout << "Building Quad-Tree... ";
+            quadTree.build(&currentFile, getFitsPixel, currentFile.width, currentFile.height);
+            treeBuilt = true;
+        }
+        else if (cmd == "GET_PIXEL" || cmd == "GET") {
+            if (!treeBuilt) {
+                std::cout << "Build Quad-Tree first with BUILD_TREE." << std::endl;
+                continue;
+            }
+            int x, y;
+            if (iss >> x >> y) {
+                if (x >= 0 && x < currentFile.width && y >= 0 && y < currentFile.height) {
+                    double pixel = quadTree.getPixel(&currentFile, getFitsPixel, x, y);
+                    std::cout << "Pixel(" << x << ", " << y << ") = " << pixel << std::endl;
+                } else {
+                    std::cout << "Coordinates out of range. Image is " 
+                              << currentFile.width << "x" << currentFile.height << std::endl;
+                }
+            } else {
+                std::cout << "Usage: GET_PIXEL <x> <y>" << std::endl;
+            }
+        }
+        else if (cmd == "FIND_SOURCES" || cmd == "FIND") {
+            if (!treeBuilt) {
+                std::cout << "Build Quad-Tree first with BUILD_TREE." << std::endl;
+                continue;
+            }
+            double sigma;
+            if (iss >> sigma) {
+                if (sigma < 0) {
+                    std::cout << "Sigma must be non-negative." << std::endl;
+                    continue;
+                }
+                double mean = currentFile.computeMean();
+                double stddev = currentFile.computeStdDev();
+                double threshold = mean + sigma * stddev;
+                
+                std::cout << "\n=== Source Detection ===" << std::endl;
+                std::cout << "  Mean:      " << mean << std::endl;
+                std::cout << "  StdDev:    " << stddev << std::endl;
+                std::cout << "  Sigma:     " << sigma << std::endl;
+                std::cout << "  Threshold: " << threshold << std::endl;
+                std::cout << "  Searching..." << std::endl;
+                
+                std::vector<Source> sources = quadTree.findSources(&currentFile, getFitsPixel, threshold);
+                
+                std::cout << "\n  Found " << sources.size() << " bright pixels above threshold." << std::endl;
+                
+                int show = std::min(30, static_cast<int>(sources.size()));
+                if (show > 0) {
+                    std::cout << "\n  Top " << show << " brightest sources:" << std::endl;
+                    std::cout << "  " << std::setw(6) << "X" 
+                              << std::setw(6) << "Y" 
+                              << std::setw(16) << "Brightness" << std::endl;
+                    std::cout << "  " << std::string(28, '-') << std::endl;
+                    for (int i = 0; i < show; i++) {
+                        std::cout << "  " << std::setw(6) << sources[i].x 
+                                  << std::setw(6) << sources[i].y 
+                                  << std::setw(16) << std::fixed << std::setprecision(2) 
+                                  << sources[i].brightness << std::endl;
+                    }
+                    if (static_cast<int>(sources.size()) > show) {
+                        std::cout << "  ... and " << (sources.size() - show) << " more." << std::endl;
+                    }
+                }
+                std::cout << "\n========================\n" << std::endl;
+            } else {
+                std::cout << "Usage: FIND_SOURCES <sigma>" << std::endl;
+                std::cout << "  Finds pixels where brightness > mean + sigma * stddev" << std::endl;
+            }
+        }
+        else if (cmd == "CALIBRATE" || cmd == "CAL") {
+            if (!currentFile.loaded) {
+                std::cout << "Load main image first with LOAD." << std::endl;
+                continue;
+            }
+            std::string darkFile;
+            iss >> darkFile;
+            if (!darkFile.empty()) {
+                FitsFile darkFrame;
+                if (darkFrame.load(darkFile)) {
+                    if (currentFile.calibrate(darkFrame)) {
+                        treeBuilt = false;
+                        std::cout << "Calibration successful. Rebuild Quad-Tree if needed." << std::endl;
+                    }
+                }
+            } else {
+                std::cout << "Usage: CALIBRATE <dark_frame_file>" << std::endl;
+            }
+        }
+        else if (cmd == "SAVE") {
+            if (!currentFile.loaded) {
+                std::cout << "No file loaded to save." << std::endl;
+                continue;
+            }
+            std::string filename;
+            iss >> filename;
+            if (!filename.empty()) {
+                currentFile.save(filename);
+            } else {
+                std::cout << "Usage: SAVE <filename>" << std::endl;
+            }
+        }
+        else if (cmd == "HELP" || cmd == "?") {
+            printHelp();
+        }
+        else if (cmd == "EXIT" || cmd == "QUIT" || cmd == "Q") {
+            std::cout << "Goodbye!" << std::endl;
+            break;
+        }
+        else {
+            std::cout << "Unknown command: '" << cmd << "'. Type HELP for available commands." << std::endl;
+        }
     }
-    else if (cmd == "HEADER")
-    {
-      if (currentFile.loaded)
-      {
-        std::cout << "\n--- FITS Header ---\n";
-        currentFile.header.printInOrder();
-        std::cout << "--- End Header ---\n\n";
-      }
-      else
-      {
-        std::cout << "No file loaded.\n";
-      }
-    }
-    else if (cmd == "INFO")
-    {
-      currentFile.printInfo();
-    }
-    else if (cmd == "STAT")
-    {
-      if (!currentFile.loaded)
-      {
-        std::cout << "No file loaded.\n";
-        continue;
-      }
-      std::cout << "\n--- Statistics ---\n";
-      std::cout << "Min:    " << currentFile.computeMin() << "\n";
-      std::cout << "Max:    " << currentFile.computeMax() << "\n";
-      std::cout << "Mean:   " << currentFile.computeMean() << "\n";
-      std::cout << "StdDev: " << currentFile.computeStdDev() << "\n";
-      std::cout << "--- End Statistics ---\n\n";
-    }
-    else if (cmd == "HISTOGRAM")
-    {
-      if (!currentFile.loaded)
-      {
-        std::cout << "No file loaded.\n";
-        continue;
-      }
-      printHistogram(currentFile);
-    }
-    else if (cmd == "BUILD_TREE")
-    {
-      if (!currentFile.loaded)
-      {
-        std::cout << "No file loaded.\n";
-        continue;
-      }
-      quadTree.build(&currentFile, getFitsPixel, currentFile.width, currentFile.height);
-      treeBuilt = true;
-    }
-    else if (cmd == "GET_PIXEL")
-    {
-      if (!treeBuilt)
-      {
-        std::cout << "Build QuadTree first (BUILD_TREE).\n";
-        continue;
-      }
-      int x, y;
-      iss >> x >> y;
-      double pixel = quadTree.getPixel(&currentFile, getFitsPixel, x, y);
-      std::cout << "Pixel(" << x << ", " << y << ") = " << pixel << "\n";
-    }
-    else if (cmd == "FIND_SOURCES")
-    {
-      if (!treeBuilt)
-      {
-        std::cout << "Build QuadTree first (BUILD_TREE).\n";
-        continue;
-      }
-      double sigma;
-      iss >> sigma;
-      double mean = currentFile.computeMean();
-      double stddev = currentFile.computeStdDev();
-      double threshold = mean + sigma * stddev;
-
-      std::cout << "Threshold: " << threshold << " (mean + " << sigma << " * stddev)\n";
-      std::vector<Source> sources = quadTree.findSources(&currentFile, getFitsPixel, threshold);
-
-      std::cout << "Found " << sources.size() << " bright pixels:\n";
-      int show = std::min(20, (int)sources.size());
-      for (int i = 0; i < show; i++)
-      {
-        std::cout << "  (" << sources[i].x << ", " << sources[i].y
-                  << ") brightness = " << sources[i].brightness << "\n";
-      }
-      if ((int)sources.size() > show)
-      {
-        std::cout << "  ... and " << (sources.size() - show) << " more\n";
-      }
-    }
-    else if (cmd == "CALIBRATE")
-    {
-      std::string darkFile;
-      iss >> darkFile;
-      std::cout << "CALIBRATE not fully implemented yet. Dark file: " << darkFile << "\n";
-    }
-    else if (cmd == "SAVE")
-    {
-      std::string filename;
-      iss >> filename;
-      if (!filename.empty() && currentFile.loaded)
-      {
-        currentFile.save(filename);
-      }
-      else
-      {
-        std::cout << "Usage: SAVE filename.fit\n";
-      }
-    }
-    else if (cmd == "EXIT" || cmd == "QUIT")
-    {
-      std::cout << "Bye!\n";
-      break;
-    }
-    else if (!cmd.empty())
-    {
-      std::cout << "Unknown command: " << cmd << "\n";
-    }
-  }
-
-  return 0;
+    
+    return 0;
 }
