@@ -105,8 +105,6 @@ namespace chernikov {
       return *this;
     }
 
-    // ==================== ОСНОВНЫЕ МЕТОДЫ ====================
-
     void add(const Key &k, const Value &v)
     {
       if (element_count_ >= max_elements_)
@@ -205,7 +203,17 @@ namespace chernikov {
 
     const Value &get(const Key &k) const
     {
-      return const_cast< HashTable * >(this)->get(k);
+      size_type index = bucket_index(k);
+      const Bucket &bucket = buckets_[index];
+
+      for (auto it = bucket.cbegin(); it != bucket.cend(); ++it)
+      {
+        if (equal_((*it).first, k))
+        {
+          return (*it).second;
+        }
+      }
+      throw std::out_of_range("Key not found");
     }
 
     void rehash(size_t slots)
@@ -246,8 +254,6 @@ namespace chernikov {
       element_count_ = 0;
     }
 
-    // ==================== ИНФОРМАЦИОННЫЕ МЕТОДЫ ====================
-
     size_type size() const
     {
       return element_count_;
@@ -270,9 +276,34 @@ namespace chernikov {
       return static_cast< float >(element_count_) / bucket_count_;
     }
 
-    void set_max_elements(size_type max)
+    size_type max_chain_length() const
     {
-      max_elements_ = max;
+      size_type max_len = 0;
+      for (size_type i = 0; i < bucket_count_; ++i)
+      {
+        if (buckets_[i].size() > max_len)
+        {
+          max_len = buckets_[i].size();
+        }
+      }
+      return max_len;
+    }
+
+    void set_max_load_factor(float lf)
+    {
+      max_elements_ = static_cast< size_type >(bucket_count_ * lf);
+      if (max_elements_ < 1)
+      {
+        max_elements_ = 1;
+      }
+    }
+
+    void set_max_chain_length(size_type max_len)
+    {
+      if (max_chain_length() > max_len)
+      {
+        rehash(bucket_count_ * 2);
+      }
     }
 
     Value &operator[](const Key &k)
@@ -284,7 +315,10 @@ namespace chernikov {
       return get(k);
     }
 
-    // ==================== ИТЕРАТОР ====================
+    const Value &operator[](const Key &k) const
+    {
+      return get(k);
+    }
 
     class Iterator
     {
@@ -292,21 +326,22 @@ namespace chernikov {
       const Bucket *buckets_;
       size_type bucket_count_;
       size_type current_bucket_;
-      LCIter< BucketValue > bucket_iter_;
+      const Node< BucketValue > *current_node_;
       bool is_end_;
 
       void find_next_valid()
       {
         while (current_bucket_ < bucket_count_)
         {
-          bucket_iter_ = buckets_[current_bucket_].cbegin();
-          if (bucket_iter_ != buckets_[current_bucket_].cend())
+          if (!buckets_[current_bucket_].empty())
           {
+            current_node_ = buckets_[current_bucket_].cbegin().ptr;
             return;
           }
           ++current_bucket_;
         }
         is_end_ = true;
+        current_node_ = nullptr;
       }
 
     public:
@@ -314,6 +349,7 @@ namespace chernikov {
         buckets_(buckets),
         bucket_count_(bucket_count),
         current_bucket_(0),
+        current_node_(nullptr),
         is_end_(end)
       {
         if (!end && bucket_count_ > 0)
@@ -324,7 +360,7 @@ namespace chernikov {
 
       const std::pair< const Key, Value > &operator*() const
       {
-        return reinterpret_cast< const std::pair< const Key, Value > & >(*bucket_iter_);
+        return reinterpret_cast< const std::pair< const Key, Value > & >(current_node_->data);
       }
 
       Iterator &operator++()
@@ -332,8 +368,8 @@ namespace chernikov {
         if (is_end_)
           return *this;
 
-        ++bucket_iter_;
-        if (bucket_iter_ == buckets_[current_bucket_].cend())
+        current_node_ = current_node_->next;
+        if (current_node_ == nullptr)
         {
           ++current_bucket_;
           find_next_valid();
@@ -347,7 +383,7 @@ namespace chernikov {
           return true;
         if (is_end_ || other.is_end_)
           return false;
-        return current_bucket_ == other.current_bucket_ && bucket_iter_ == other.bucket_iter_;
+        return current_bucket_ == other.current_bucket_ && current_node_ == other.current_node_;
       }
 
       bool operator!=(const Iterator &other) const

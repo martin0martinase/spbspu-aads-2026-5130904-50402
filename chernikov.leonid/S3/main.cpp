@@ -57,6 +57,12 @@ int string_to_int(const std::string &s)
 
 void cmd_graphs(const HashTable< std::string, Graph > &graphs)
 {
+  if (graphs.empty())
+  {
+    std::cout << "\n";
+    return;
+  }
+
   List< std::string > names;
   for (auto it = graphs.begin(); it != graphs.end(); ++it)
   {
@@ -89,6 +95,12 @@ void cmd_vertexes(const HashTable< std::string, Graph > &graphs, const std::stri
   }
 
   Graph::VertexList vertices = graphs.get(graph_name).getVertices();
+  if (vertices.empty())
+  {
+    std::cout << "\n";
+    return;
+  }
+
   for (auto it = vertices.cbegin(); it != vertices.cend(); ++it)
   {
     std::cout << *it << "\n";
@@ -105,6 +117,12 @@ void cmd_outbound(const HashTable< std::string, Graph > &graphs, const std::stri
   }
 
   auto outbound = graphs.get(graph_name).getOutbound(vertex);
+  if (outbound.empty())
+  {
+    std::cout << "\n";
+    return;
+  }
+
   for (auto it = outbound.cbegin(); it != outbound.cend(); ++it)
   {
     std::cout << (*it).vertex;
@@ -126,6 +144,12 @@ void cmd_inbound(const HashTable< std::string, Graph > &graphs, const std::strin
   }
 
   auto inbound = graphs.get(graph_name).getInbound(vertex);
+  if (inbound.empty())
+  {
+    std::cout << "\n";
+    return;
+  }
+
   for (auto it = inbound.cbegin(); it != inbound.cend(); ++it)
   {
     std::cout << (*it).vertex;
@@ -153,6 +177,12 @@ void cmd_cut(HashTable< std::string, Graph > &graphs, const std::string &graph_n
              const std::string &to, int weight)
 {
   if (!graphs.has(graph_name))
+  {
+    std::cout << "<INVALID COMMAND>\n";
+    return;
+  }
+
+  if (!graphs.get(graph_name).hasVertex(from) || !graphs.get(graph_name).hasVertex(to))
   {
     std::cout << "<INVALID COMMAND>\n";
     return;
@@ -189,13 +219,16 @@ void cmd_create(HashTable< std::string, Graph > &graphs, const List< std::string
     ++it;
     int count = string_to_int(*it);
 
-    int i = 0;
-    ++it;
-    while (i < count && it != tokens.cend())
+    if (count < 0)
     {
-      new_graph.addEdge(*it, *it, 0);
-      ++it;
-      ++i;
+      std::cout << "<INVALID COMMAND>\n";
+      return;
+    }
+
+    ++it;
+    for (int i = 0; i < count && it != tokens.cend(); ++i, ++it)
+    {
+      new_graph.addVertex(*it);
     }
   }
 
@@ -263,6 +296,12 @@ void cmd_extract(HashTable< std::string, Graph > &graphs, const List< std::strin
     vertices.push_back(*it);
     ++it;
     ++i;
+  }
+
+  if (i < count)
+  {
+    std::cout << "<INVALID COMMAND>\n";
+    return;
   }
 
   Graph extracted = graphs.get(old_name).extractSubgraph(vertices);

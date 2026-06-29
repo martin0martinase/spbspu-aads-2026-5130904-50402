@@ -24,6 +24,7 @@ namespace chernikov {
   template < typename T > class LIter
   {
     friend class List< T >;
+    template < typename K, typename V, typename H, typename E > friend class HashTable;
 
   private:
     Node< T > *ptr;
@@ -81,8 +82,9 @@ namespace chernikov {
   template < typename T > class LCIter
   {
     friend class List< T >;
+    template < typename K, typename V, typename H, typename E > friend class HashTable;
 
-  private:
+  public:
     const Node< T > *ptr;
 
     explicit LCIter(const Node< T > *p):
@@ -90,7 +92,6 @@ namespace chernikov {
     {
     }
 
-  public:
     LCIter():
       ptr(nullptr)
     {
