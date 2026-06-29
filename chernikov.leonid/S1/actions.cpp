@@ -6,11 +6,13 @@
 #include <cctype>
 #include <limits>
 
-namespace chernikov {
+namespace chernikov
+{
 
-  List< Sequence > parser(std::istream &in)
+  List<Sequence>
+  parser(std::istream &in)
   {
-    List< Sequence > result;
+    List<Sequence> result;
     std::string line;
     while (std::getline(in, line))
     {
@@ -30,7 +32,7 @@ namespace chernikov {
       }
       if (name.empty())
         continue;
-      List< size_t > numbers;
+      List<size_t> numbers;
       while (pos < len)
       {
         while (pos < len && std::isspace(line[pos]))
@@ -50,7 +52,8 @@ namespace chernikov {
       if (result.empty())
       {
         result.add({name, numbers});
-      } else
+      }
+      else
       {
         auto last = result.begin();
         auto prev = last;
@@ -64,7 +67,7 @@ namespace chernikov {
     }
     return result;
   }
-  void print_names(std::ostream &out, const List< Sequence > &sequences)
+  void print_names(std::ostream &out, const List<Sequence> &sequences)
   {
     if (sequences.empty())
     {
@@ -82,7 +85,7 @@ namespace chernikov {
     }
     out << "\n";
   }
-  size_t max_sequence_length(const List< Sequence > &sequences)
+  size_t max_sequence_length(const List<Sequence> &sequences)
   {
     size_t max_len = 0;
     for (auto it = sequences.begin(); it != sequences.end(); ++it)
@@ -95,7 +98,7 @@ namespace chernikov {
     }
     return max_len;
   }
-  void print_transposed(std::ostream &out, const List< Sequence > &sequences)
+  void print_transposed(std::ostream &out, const List<Sequence> &sequences)
   {
     if (sequences.empty())
     {
@@ -107,7 +110,7 @@ namespace chernikov {
       bool first = true;
       for (auto seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
       {
-        const List< size_t > &numbers = seq_it->second;
+        const List<size_t> &numbers = seq_it->second;
         if (i < numbers.size())
         {
           auto num_it = numbers.begin();
@@ -127,7 +130,7 @@ namespace chernikov {
       out << "\n";
     }
   }
-  void print_sums(std::ostream &out, const List< Sequence > &sequences)
+  void print_sums(std::ostream &out, const List<Sequence> &sequences)
   {
     if (sequences.empty())
     {
@@ -145,13 +148,13 @@ namespace chernikov {
       size_t sum = 0;
       for (auto seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
       {
-        const List< size_t > &numbers = seq_it->second;
+        const List<size_t> &numbers = seq_it->second;
         if (i < numbers.size())
         {
           auto num_it = numbers.begin();
           for (size_t j = 0; j < i; ++j)
             ++num_it;
-          if (sum > std::numeric_limits< size_t >::max() - *num_it)
+          if (sum > std::numeric_limits<size_t>::max() - *num_it)
           {
             throw std::overflow_error("Sum overflow");
           }
@@ -165,7 +168,7 @@ namespace chernikov {
       bool has_numbers = false;
       for (auto seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
       {
-        const List< size_t > &numbers = seq_it->second;
+        const List<size_t> &numbers = seq_it->second;
         if (i < numbers.size())
         {
           auto num_it = numbers.begin();

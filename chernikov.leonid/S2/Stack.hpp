@@ -13,19 +13,19 @@ namespace chernikov {
 
   public:
     Stack() = default;
-    bool empty() const;
-    size_t size() const;
+    bool empty() const noexcept;
+    size_t size() const noexcept;
     void push(const T &val);
     T drop();
     const T &top() const;
     T &top();
   };
 
-  template < typename T > bool Stack< T >::empty() const
+  template < typename T > bool Stack< T >::empty() const noexcept
   {
     return data.empty();
   }
-  template < typename T > size_t Stack< T >::size() const
+  template < typename T > size_t Stack< T >::size() const noexcept
   {
     return data.size();
   }
@@ -39,7 +39,7 @@ namespace chernikov {
     {
       throw std::logic_error("Stack is empty");
     }
-    T val = data.front();
+    T val = std::move(data.front());
     data.first_delete();
     return val;
   }
