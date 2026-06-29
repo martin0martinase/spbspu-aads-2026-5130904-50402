@@ -23,17 +23,11 @@ class BinarySearchTree
   BstNode *insertRec(BstNode *node, const std::string &key, const std::string &value, const std::string &comment)
   {
     if (node == nullptr)
-    {
       return new BstNode(key, value, comment);
-    }
     if (key < node->key)
-    {
       node->left = insertRec(node->left, key, value, comment);
-    }
     else if (key > node->key)
-    {
       node->right = insertRec(node->right, key, value, comment);
-    }
     else
     {
       node->value = value;
@@ -59,14 +53,12 @@ class BinarySearchTree
       return;
     inOrderRec(node->left);
     std::cout << node->key;
-    int padding = 8 - node->key.length();
+    int padding = 8 - static_cast<int>(node->key.length());
     for (int i = 0; i < padding; i++)
       std::cout << " ";
     std::cout << "= " << node->value;
     if (!node->comment.empty())
-    {
       std::cout << " / " << node->comment;
-    }
     std::cout << std::endl;
     inOrderRec(node->right);
   }
@@ -78,6 +70,16 @@ class BinarySearchTree
     toVectorRec(node->left, vec);
     vec.push_back({node->key, node->value});
     toVectorRec(node->right, vec);
+  }
+
+  BstNode *copyRec(BstNode *node)
+  {
+    if (node == nullptr)
+      return nullptr;
+    BstNode *newNode = new BstNode(node->key, node->value, node->comment);
+    newNode->left = copyRec(node->left);
+    newNode->right = copyRec(node->right);
+    return newNode;
   }
 
   void destroyRec(BstNode *node)
@@ -92,6 +94,21 @@ class BinarySearchTree
 public:
   BinarySearchTree() : root(nullptr) {}
   ~BinarySearchTree() { destroyRec(root); }
+
+  BinarySearchTree(const BinarySearchTree &other) : root(nullptr)
+  {
+    root = copyRec(other.root);
+  }
+
+  BinarySearchTree &operator=(const BinarySearchTree &other)
+  {
+    if (this != &other)
+    {
+      destroyRec(root);
+      root = copyRec(other.root);
+    }
+    return *this;
+  }
 
   void insert(const std::string &key, const std::string &value, const std::string &comment = "")
   {
@@ -120,7 +137,4 @@ public:
     toVectorRec(root, result);
     return result;
   }
-
-  BinarySearchTree(const BinarySearchTree &) = delete;
-  BinarySearchTree &operator=(const BinarySearchTree &) = delete;
 };

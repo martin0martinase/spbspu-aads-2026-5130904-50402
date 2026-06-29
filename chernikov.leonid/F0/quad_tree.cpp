@@ -1,4 +1,5 @@
 #include "quad_tree.h"
+#include <algorithm>
 
 QuadNode *QuadTree::build(void *context, PixelGetter getter, int x, int y, int w, int h)
 {
@@ -7,12 +8,8 @@ QuadNode *QuadTree::build(void *context, PixelGetter getter, int x, int y, int w
   double sum = 0.0;
   int count = w * h;
   for (int dy = 0; dy < h; dy++)
-  {
     for (int dx = 0; dx < w; dx++)
-    {
       sum += getter(context, x + dx, y + dy);
-    }
-  }
   node->avgBrightness = sum / count;
 
   if (count <= MIN_LEAF_SIZE)
@@ -21,20 +18,15 @@ QuadNode *QuadTree::build(void *context, PixelGetter getter, int x, int y, int w
     return node;
   }
 
-  // Делим на 4 части
   node->isLeaf = false;
   int halfW = w / 2;
   int halfH = h / 2;
   int restW = w - halfW;
   int restH = h - halfH;
 
-  // NW левый верхний
   node->children[0] = build(context, getter, x, y, halfW, halfH);
-  // NE правый верхний
   node->children[1] = build(context, getter, x + halfW, y, restW, halfH);
-  // SW левый нижний
   node->children[2] = build(context, getter, x, y + halfH, halfW, restH);
-  // SE правый нижний
   node->children[3] = build(context, getter, x + halfW, y + halfH, restW, restH);
 
   return node;
@@ -50,28 +42,19 @@ void QuadTree::build(void *context, PixelGetter getter, int width, int height)
 double QuadTree::getPixelRec(QuadNode *node, void *context, PixelGetter getter, int px, int py)
 {
   if (node->isLeaf)
-  {
     return getter(context, px, py);
-  }
+
   int midX = node->x + node->children[0]->width;
   int midY = node->y + node->children[0]->height;
 
   if (px < midX && py < midY)
-  {
-    return getPixelRec(node->children[0], context, getter, px, py); // NW
-  }
+    return getPixelRec(node->children[0], context, getter, px, py);
   else if (px >= midX && py < midY)
-  {
-    return getPixelRec(node->children[1], context, getter, px, py); // NE
-  }
+    return getPixelRec(node->children[1], context, getter, px, py);
   else if (px < midX && py >= midY)
-  {
-    return getPixelRec(node->children[2], context, getter, px, py); // SW
-  }
+    return getPixelRec(node->children[2], context, getter, px, py);
   else
-  {
-    return getPixelRec(node->children[3], context, getter, px, py); // SE
-  }
+    return getPixelRec(node->children[3], context, getter, px, py);
 }
 
 double QuadTree::getPixel(void *context, PixelGetter getter, int x, int y)
@@ -88,9 +71,7 @@ void QuadTree::findSourcesRec(QuadNode *node, void *context, PixelGetter getter,
                               double threshold, std::vector<Source> &result)
 {
   if (node->avgBrightness < threshold)
-  {
     return;
-  }
 
   if (node->isLeaf)
   {
@@ -102,21 +83,15 @@ void QuadTree::findSourcesRec(QuadNode *node, void *context, PixelGetter getter,
         int py = node->y + dy;
         double brightness = getter(context, px, py);
         if (brightness > threshold)
-        {
           result.push_back({px, py, brightness});
-        }
       }
     }
   }
   else
   {
     for (int i = 0; i < 4; i++)
-    {
       if (node->children[i] != nullptr)
-      {
         findSourcesRec(node->children[i], context, getter, threshold, result);
-      }
-    }
   }
 }
 
@@ -131,15 +106,14 @@ std::vector<Source> QuadTree::findSources(void *context, PixelGetter getter, dou
   findSourcesRec(root, context, getter, threshold, result);
 
   for (size_t i = 0; i < result.size(); i++)
-  {
     for (size_t j = i + 1; j < result.size(); j++)
-    {
       if (result[j].brightness > result[i].brightness)
-      {
         std::swap(result[i], result[j]);
-      }
-    }
-  }
 
   return result;
+}
+
+void QuadTree::printStats() const
+{
+  std::cout << "QuadTree statistics not yet implemented." << std::endl;
 }

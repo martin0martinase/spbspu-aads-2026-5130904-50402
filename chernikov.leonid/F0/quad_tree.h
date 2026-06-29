@@ -15,7 +15,7 @@ struct QuadNode
   int width, height;
   double avgBrightness;
   bool isLeaf;
-  QuadNode *children[4]; // NW, NE, SW, SE
+  QuadNode *children[4];
 
   QuadNode(int x_, int y_, int w_, int h_)
       : x(x_), y(y_), width(w_), height(h_), avgBrightness(0.0), isLeaf(true)
@@ -33,10 +33,12 @@ struct QuadNode
 
 class QuadTree
 {
+public:
+  typedef double (*PixelGetter)(void *context, int x, int y);
+
+private:
   QuadNode *root;
   static const int MIN_LEAF_SIZE = 16;
-
-  typedef double (*PixelGetter)(void *context, int x, int y);
 
   QuadNode *build(void *context, PixelGetter getter, int x, int y, int w, int h);
   void findSourcesRec(QuadNode *node, void *context, PixelGetter getter,
@@ -48,10 +50,7 @@ public:
   ~QuadTree() { delete root; }
 
   void build(void *context, PixelGetter getter, int width, int height);
-
   double getPixel(void *context, PixelGetter getter, int x, int y);
-
   std::vector<Source> findSources(void *context, PixelGetter getter, double threshold);
-
   void printStats() const;
 };
