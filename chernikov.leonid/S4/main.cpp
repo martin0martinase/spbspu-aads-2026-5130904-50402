@@ -108,12 +108,6 @@ void cmd_complement(DictMap &dicts, const std::string &new_name, const std::stri
     return;
   }
 
-  if (dicts.has(new_name) && new_name != name1 && new_name != name2)
-  {
-    std::cout << "<INVALID COMMAND>\n";
-    return;
-  }
-
   Dictionary result;
   Dictionary &d1 = dicts.get(name1);
   Dictionary &d2 = dicts.get(name2);
@@ -142,12 +136,6 @@ void cmd_intersect(DictMap &dicts, const std::string &new_name, const std::strin
     return;
   }
 
-  if (dicts.has(new_name) && new_name != name1 && new_name != name2)
-  {
-    std::cout << "<INVALID COMMAND>\n";
-    return;
-  }
-
   Dictionary result;
   Dictionary &d1 = dicts.get(name1);
   Dictionary &d2 = dicts.get(name2);
@@ -171,12 +159,6 @@ void cmd_intersect(DictMap &dicts, const std::string &new_name, const std::strin
 void cmd_union(DictMap &dicts, const std::string &new_name, const std::string &name1, const std::string &name2)
 {
   if (!dicts.has(name1) || !dicts.has(name2))
-  {
-    std::cout << "<INVALID COMMAND>\n";
-    return;
-  }
-
-  if (dicts.has(new_name) && new_name != name1 && new_name != name2)
   {
     std::cout << "<INVALID COMMAND>\n";
     return;
@@ -250,6 +232,10 @@ int main(int argc, char *argv[])
       }
     }
 
+    if (dicts.has(dict_name))
+    {
+      dicts.drop(dict_name);
+    }
     dicts.push(dict_name, dict);
   }
 
