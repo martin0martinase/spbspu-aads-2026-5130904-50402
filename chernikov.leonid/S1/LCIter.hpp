@@ -49,12 +49,12 @@ namespace chernikov
     {
       return &ptr->data;
     }
-    LCIter &operator++() // префикс
+    LCIter &operator++()
     {
       ptr = ptr->next;
       return *this;
     }
-    LCIter operator++(int) // постфикс
+    LCIter operator++(int)
     {
       LCIter tmp(*this);
       ptr = ptr->next;
