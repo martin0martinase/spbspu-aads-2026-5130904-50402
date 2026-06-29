@@ -16,11 +16,13 @@ int main()
     chernikov::print_transposed(std::cout, sequences);
     chernikov::print_sums(std::cout, sequences);
     return 0;
-  } catch (const std::overflow_error &e)
+  }
+  catch (const std::overflow_error &e)
   {
     std::cerr << "Error: " << e.what() << "\n";
     return 1;
-  } catch (const std::exception &e)
+  }
+  catch (const std::exception &e)
   {
     std::cerr << "Error: " << e.what() << "\n";
     return 1;

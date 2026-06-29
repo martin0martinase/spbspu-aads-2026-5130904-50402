@@ -4,30 +4,31 @@
 #include "node.hpp"
 #include <ostream>
 
-namespace chernikov {
+namespace chernikov
+{
 
-  template < typename T > class List;
-  template < typename T > class LIter;
+  template<typename T>
+  class List;
+  template<typename T>
+  class LIter;
 
-  template < typename T > class LCIter
+  template<typename T>
+  class LCIter
   {
-    friend class List< T >;
+    friend class List<T>;
 
   private:
-    const Node< T > *ptr;
+    const Node<T> *ptr;
 
-    explicit LCIter(const Node< T > *p):
-      ptr(p)
+    explicit LCIter(const Node<T> *p) : ptr(p)
     {
     }
 
   public:
-    LCIter():
-      ptr(nullptr)
+    LCIter() : ptr(nullptr)
     {
     }
-    LCIter(const LIter< T > &it):
-      ptr(it.ptr)
+    LCIter(const LIter<T> &it) : ptr(it.ptr)
     {
     }
 
@@ -48,12 +49,12 @@ namespace chernikov {
     {
       return &ptr->data;
     }
-    LCIter &operator++() // префикс
+    LCIter &operator++()
     {
       ptr = ptr->next;
       return *this;
     }
-    LCIter operator++(int) // постфикс
+    LCIter operator++(int)
     {
       LCIter tmp(*this);
       ptr = ptr->next;
@@ -64,7 +65,8 @@ namespace chernikov {
       if (it.ptr == nullptr)
       {
         os << "LCIter(end)";
-      } else
+      }
+      else
       {
         os << "LCIter(" << it.ptr->data << ")";
       }

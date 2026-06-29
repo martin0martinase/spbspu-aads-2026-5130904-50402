@@ -62,7 +62,6 @@ int main(int argc, char *argv[])
       std::cout << std::endl;
     } else if (!hasAnyInput && argc == 2)
     {
-      // Пустой файл - выводим одну пустую строку
       std::cout << std::endl;
     }
   } catch (const std::exception &e)
