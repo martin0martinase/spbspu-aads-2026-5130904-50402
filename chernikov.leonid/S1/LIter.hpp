@@ -4,25 +4,26 @@
 #include "node.hpp"
 #include <ostream>
 
-namespace chernikov {
+namespace chernikov
+{
 
-  template < typename T > class List;
+  template <typename T>
+  class List;
 
-  template < typename T > class LIter
+  template <typename T>
+  class LIter
   {
-    friend class List< T >;
+    friend class List<T>;
 
   private:
-    Node< T > *ptr;
+    Node<T> *ptr;
 
-    explicit LIter(Node< T > *p):
-      ptr(p)
+    explicit LIter(Node<T> *p) : ptr(p)
     {
     }
 
   public:
-    LIter():
-      ptr(nullptr)
+    LIter() : ptr(nullptr)
     {
     }
     LIter(const LIter &other) = default;
@@ -44,23 +45,24 @@ namespace chernikov {
     {
       return ptr->data;
     }
-    LIter &operator++() // префикс
+    LIter &operator++()
     {
       ptr = ptr->next;
       return *this;
     }
-    LIter operator++(int) // постфикс
+    LIter operator++(int)
     {
       LIter tmp(*this);
       ptr = ptr->next;
       return tmp;
     }
-    friend std::ostream &operator<<(std::ostream &os, const LIter< T > &it)
+    friend std::ostream &operator<<(std::ostream &os, const LIter<T> &it)
     {
-      if (it == LIter< T >())
+      if (it == LIter<T>())
       {
         os << "LIter(nullptr)";
-      } else
+      }
+      else
       {
         os << "LIter(" << *it << ")";
       }
