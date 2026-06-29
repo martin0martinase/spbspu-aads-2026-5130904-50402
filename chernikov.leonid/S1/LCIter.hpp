@@ -7,12 +7,12 @@
 namespace chernikov
 {
 
-  template <typename T>
+  template<typename T>
   class List;
-  template <typename T>
+  template<typename T>
   class LIter;
 
-  template <typename T>
+  template<typename T>
   class LCIter
   {
     friend class List<T>;
