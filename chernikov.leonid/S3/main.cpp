@@ -183,22 +183,6 @@ void cmd_create(HashTable< std::string, Graph > &graphs, const List< std::string
   }
 
   Graph new_graph(name);
-
-  if (tokens.size() >= 3)
-  {
-    ++it;
-    int count = string_to_int(*it);
-
-    int i = 0;
-    ++it;
-    while (i < count && it != tokens.cend())
-    {
-      new_graph.addEdge(*it, *it, 0);
-      ++it;
-      ++i;
-    }
-  }
-
   graphs.add(name, new_graph);
 }
 

@@ -94,6 +94,87 @@ namespace chernikov {
     BOOST_CHECK(g.hasVertex("C"));
   }
 
+  BOOST_AUTO_TEST_CASE(GraphWithZeroEdges)
+  {
+    Graph g("test");
+    auto vertices = g.getVertices();
+    BOOST_CHECK(vertices.empty());
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphExtractSubgraph)
+  {
+    Graph g("test");
+    g.addEdge("A", "B", 1);
+    g.addEdge("B", "C", 2);
+    g.addEdge("A", "C", 3);
+
+    Graph::VertexList sub_vertices;
+    sub_vertices.push_back("A");
+    sub_vertices.push_back("C");
+
+    Graph sub = g.extractSubgraph(sub_vertices);
+    BOOST_CHECK(sub.hasVertex("A"));
+    BOOST_CHECK(sub.hasVertex("C"));
+    BOOST_CHECK(!sub.hasVertex("B"));
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphMerge)
+  {
+    Graph g1("g1");
+    g1.addEdge("A", "B", 1);
+
+    Graph g2("g2");
+    g2.addEdge("B", "C", 2);
+
+    Graph merged = Graph::merge(g1, g2, "merged");
+    BOOST_CHECK_EQUAL(merged.getName(), "merged");
+    BOOST_CHECK(merged.hasVertex("A"));
+    BOOST_CHECK(merged.hasVertex("B"));
+    BOOST_CHECK(merged.hasVertex("C"));
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphRemoveEdge)
+  {
+    Graph g("test");
+    g.addEdge("A", "B", 1);
+    g.addEdge("A", "B", 2);
+
+    bool removed = g.removeEdge("A", "B", 1);
+    BOOST_CHECK(removed);
+
+    auto outbound = g.getOutbound("A");
+    BOOST_CHECK(!outbound.empty());
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphRemoveNonExistentEdge)
+  {
+    Graph g("test");
+    g.addEdge("A", "B", 1);
+
+    bool removed = g.removeEdge("A", "B", 999);
+    BOOST_CHECK(!removed);
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphInbound)
+  {
+    Graph g("test");
+    g.addEdge("A", "B", 1);
+    g.addEdge("C", "B", 2);
+
+    auto inbound = g.getInbound("B");
+    BOOST_CHECK(!inbound.empty());
+  }
+
+  BOOST_AUTO_TEST_CASE(GraphOutbound)
+  {
+    Graph g("test");
+    g.addEdge("A", "B", 1);
+    g.addEdge("A", "C", 2);
+
+    auto outbound = g.getOutbound("A");
+    BOOST_CHECK(!outbound.empty());
+  }
+
   BOOST_AUTO_TEST_SUITE_END()
 
 }

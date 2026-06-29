@@ -272,6 +272,15 @@ namespace chernikov {
         }
       }
 
+      for (auto it = sub_vertices.cbegin(); it != sub_vertices.cend(); ++it)
+      {
+        if (!subgraph.hasVertex(*it))
+        {
+          subgraph.addEdge(*it, *it, 0);
+          subgraph.removeEdge(*it, *it, 0);
+        }
+      }
+
       return subgraph;
     }
 

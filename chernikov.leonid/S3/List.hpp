@@ -25,7 +25,7 @@ namespace chernikov {
   {
     friend class List< T >;
 
-  private:
+  public:
     Node< T > *ptr;
 
     explicit LIter(Node< T > *p):
@@ -82,7 +82,7 @@ namespace chernikov {
   {
     friend class List< T >;
 
-  private:
+  public:
     const Node< T > *ptr;
 
     explicit LCIter(const Node< T > *p):
