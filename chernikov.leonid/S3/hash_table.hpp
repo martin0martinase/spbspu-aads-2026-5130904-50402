@@ -306,10 +306,6 @@ namespace chernikov {
       }
     }
 
-    void set_rehash_policy(size_type (*policy)(size_type))
-    {
-    }
-
     Value &operator[](const Key &k)
     {
       if (!has(k))
@@ -330,28 +326,22 @@ namespace chernikov {
       const Bucket *buckets_;
       size_type bucket_count_;
       size_type current_bucket_;
-      typename List< BucketValue >::LIter bucket_iter_;
-      typename List< BucketValue >::LIter bucket_end_;
+      const Node< BucketValue > *current_node_;
       bool is_end_;
 
       void find_next_valid()
       {
         while (current_bucket_ < bucket_count_)
         {
-          bucket_iter_ = const_cast< Bucket * >(buckets_)->begin();
-          bucket_end_ = const_cast< Bucket * >(buckets_)->end();
-          for (size_type i = 0; i < current_bucket_; ++i)
+          if (!buckets_[current_bucket_].empty())
           {
-            ++bucket_iter_;
-            ++bucket_end_;
-          }
-          if (bucket_iter_ != bucket_end_)
-          {
+            current_node_ = buckets_[current_bucket_].cbegin().ptr;
             return;
           }
           ++current_bucket_;
         }
         is_end_ = true;
+        current_node_ = nullptr;
       }
 
     public:
@@ -359,6 +349,7 @@ namespace chernikov {
         buckets_(buckets),
         bucket_count_(bucket_count),
         current_bucket_(0),
+        current_node_(nullptr),
         is_end_(end)
       {
         if (!end && bucket_count_ > 0)
@@ -369,7 +360,7 @@ namespace chernikov {
 
       const std::pair< const Key, Value > &operator*() const
       {
-        return reinterpret_cast< const std::pair< const Key, Value > & >(*bucket_iter_);
+        return reinterpret_cast< const std::pair< const Key, Value > & >(current_node_->data);
       }
 
       Iterator &operator++()
@@ -377,8 +368,8 @@ namespace chernikov {
         if (is_end_)
           return *this;
 
-        ++bucket_iter_;
-        if (bucket_iter_ == bucket_end_)
+        current_node_ = current_node_->next;
+        if (current_node_ == nullptr)
         {
           ++current_bucket_;
           find_next_valid();
@@ -392,7 +383,7 @@ namespace chernikov {
           return true;
         if (is_end_ || other.is_end_)
           return false;
-        return current_bucket_ == other.current_bucket_ && bucket_iter_ == other.bucket_iter_;
+        return current_bucket_ == other.current_bucket_ && current_node_ == other.current_node_;
       }
 
       bool operator!=(const Iterator &other) const
