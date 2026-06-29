@@ -138,7 +138,8 @@ namespace chernikov
         {
           while (!operators.empty() && operators.top() != '(')
           {
-            output.push(std::string(1, operators.drop()));
+            output.push(std::string(1, operators.top()));
+            operators.drop();
           }
           if (operators.empty())
           {
@@ -152,7 +153,8 @@ namespace chernikov
           while (!operators.empty() && operators.top() != '(' &&
                  getPriority(operators.top()) >= getPriority(op))
           {
-            output.push(std::string(1, operators.drop()));
+            output.push(std::string(1, operators.top()));
+            operators.drop();
           }
           operators.push(op);
         }
@@ -168,7 +170,8 @@ namespace chernikov
         {
           throw std::logic_error("Incorrect open bracket or missed close bracket");
         }
-        output.push(std::string(1, operators.drop()));
+        output.push(std::string(1, operators.top()));
+        operators.drop();
       }
 
       return output;
@@ -180,7 +183,8 @@ namespace chernikov
 
       while (!postfix.empty())
       {
-        std::string token = postfix.drop();
+        std::string token = postfix.front();
+        postfix.pop();
 
         if (isNumber(token))
         {
