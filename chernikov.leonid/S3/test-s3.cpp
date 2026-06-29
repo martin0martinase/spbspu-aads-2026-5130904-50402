@@ -175,6 +175,14 @@ namespace chernikov {
     BOOST_CHECK(!outbound.empty());
   }
 
+  BOOST_AUTO_TEST_CASE(GraphAddVertex)
+  {
+    Graph g("test");
+    g.addVertex("X");
+    BOOST_CHECK(g.hasVertex("X"));
+    BOOST_CHECK_EQUAL(g.edgeCount(), 0);
+  }
+
   BOOST_AUTO_TEST_SUITE_END()
 
 }

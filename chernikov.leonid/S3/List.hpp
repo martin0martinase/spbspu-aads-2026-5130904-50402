@@ -92,7 +92,6 @@ namespace chernikov {
     {
     }
 
-  public:
     LCIter():
       ptr(nullptr)
     {

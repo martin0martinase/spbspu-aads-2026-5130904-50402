@@ -63,32 +63,27 @@ namespace chernikov {
       name_ = name;
     }
 
+    void addVertex(const Vertex &vertex)
+    {
+      if (!vertices_.has(vertex))
+      {
+        try
+        {
+          vertices_.add(vertex, true);
+        } catch (const std::overflow_error &)
+        {
+          vertices_.rehash(vertices_.bucket_count() * 2);
+          vertices_.add(vertex, true);
+        }
+      }
+    }
+
     void addEdge(const Vertex &from, const Vertex &to, int weight)
     {
       Edge key(from, to);
 
-      if (!vertices_.has(from))
-      {
-        try
-        {
-          vertices_.add(from, true);
-        } catch (const std::overflow_error &)
-        {
-          vertices_.rehash(vertices_.bucket_count() * 2);
-          vertices_.add(from, true);
-        }
-      }
-      if (!vertices_.has(to))
-      {
-        try
-        {
-          vertices_.add(to, true);
-        } catch (const std::overflow_error &)
-        {
-          vertices_.rehash(vertices_.bucket_count() * 2);
-          vertices_.add(to, true);
-        }
-      }
+      addVertex(from);
+      addVertex(to);
 
       if (!edges_.has(key))
       {
@@ -252,10 +247,9 @@ namespace chernikov {
     {
       Graph subgraph;
 
-      HashTable< Vertex, bool > vertex_set;
       for (auto it = sub_vertices.cbegin(); it != sub_vertices.cend(); ++it)
       {
-        vertex_set.add(*it, true);
+        subgraph.addVertex(*it);
       }
 
       for (auto it = edges_.begin(); it != edges_.end(); ++it)
@@ -263,21 +257,12 @@ namespace chernikov {
         const Edge &edge = (*it).first;
         const WeightList &weights = (*it).second;
 
-        if (vertex_set.has(edge.first) && vertex_set.has(edge.second))
+        if (subgraph.hasVertex(edge.first) && subgraph.hasVertex(edge.second))
         {
           for (auto wit = weights.cbegin(); wit != weights.cend(); ++wit)
           {
             subgraph.addEdge(edge.first, edge.second, *wit);
           }
-        }
-      }
-
-      for (auto it = sub_vertices.cbegin(); it != sub_vertices.cend(); ++it)
-      {
-        if (!subgraph.hasVertex(*it))
-        {
-          subgraph.addEdge(*it, *it, 0);
-          subgraph.removeEdge(*it, *it, 0);
         }
       }
 
