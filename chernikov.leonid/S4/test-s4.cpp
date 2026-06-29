@@ -238,7 +238,7 @@ namespace chernikov {
     tree.push(70, "C");
 
     auto it = tree.find(50);
-    auto result = tree.rotateRight(it);
+    tree.rotateRight(it);
 
     BOOST_CHECK_EQUAL(tree.height(), 3);
     BOOST_CHECK(tree.has(20));
