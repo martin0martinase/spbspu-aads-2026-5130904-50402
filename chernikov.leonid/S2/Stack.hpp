@@ -4,42 +4,36 @@
 #include "List.hpp"
 #include <stdexcept>
 
-namespace chernikov
-{
+namespace chernikov {
 
-  template <typename T>
-  class Stack
+  template < typename T > class Stack
   {
   private:
-    List<T> data;
+    List< T > data;
 
   public:
     Stack() = default;
-    bool empty() const;
-    size_t size() const;
+    bool empty() const noexcept;
+    size_t size() const noexcept;
     void push(const T &val);
     T drop();
     const T &top() const;
     T &top();
   };
 
-  template <typename T>
-  bool Stack<T>::empty() const
+  template < typename T > bool Stack< T >::empty() const noexcept
   {
     return data.empty();
   }
-  template <typename T>
-  size_t Stack<T>::size() const
+  template < typename T > size_t Stack< T >::size() const noexcept
   {
     return data.size();
   }
-  template <typename T>
-  void Stack<T>::push(const T &val)
+  template < typename T > void Stack< T >::push(const T &val)
   {
     data.add(val);
   }
-  template <typename T>
-  T Stack<T>::drop()
+  template < typename T > T Stack< T >::drop()
   {
     if (empty())
     {
@@ -49,8 +43,7 @@ namespace chernikov
     data.first_delete();
     return val;
   }
-  template <typename T>
-  const T &Stack<T>::top() const
+  template < typename T > const T &Stack< T >::top() const
   {
     if (empty())
     {
@@ -58,8 +51,7 @@ namespace chernikov
     }
     return data.front();
   }
-  template <typename T>
-  T &Stack<T>::top()
+  template < typename T > T &Stack< T >::top()
   {
     if (empty())
     {

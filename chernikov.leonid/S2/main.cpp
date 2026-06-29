@@ -22,13 +22,12 @@ int main(int argc, char *argv[])
         return 1;
       }
       input = &file;
-    }
-    else if (argc > 2)
+    } else if (argc > 2)
     {
       std::cerr << "Usage: " << argv[0] << " [filename]" << std::endl;
       return 1;
     }
-    std::vector<long long> results;
+    std::vector< long long > results;
     std::string line;
     bool hasAnyInput = false;
     while (std::getline(*input, line))
@@ -42,8 +41,7 @@ int main(int argc, char *argv[])
       {
         long long result = chernikov::evaluateExpression(line);
         results.push_back(result);
-      }
-      catch (const std::exception &e)
+      } catch (const std::exception &e)
       {
         std::cerr << "Error evaluating expression: " << line << std::endl;
         std::cerr << "Reason: " << e.what() << std::endl;
@@ -62,13 +60,11 @@ int main(int argc, char *argv[])
         }
       }
       std::cout << std::endl;
-    }
-    else if (!hasAnyInput && argc == 2)
+    } else if (!hasAnyInput && argc == 2)
     {
       std::cout << std::endl;
     }
-  }
-  catch (const std::exception &e)
+  } catch (const std::exception &e)
   {
     std::cerr << "Error: " << e.what() << std::endl;
     return 1;

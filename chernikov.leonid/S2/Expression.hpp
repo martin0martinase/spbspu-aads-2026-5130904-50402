@@ -9,17 +9,15 @@
 #include <climits>
 #include <limits>
 
-namespace chernikov
-{
-  namespace detail
-  {
+namespace chernikov {
+  namespace detail {
     inline bool willAddOverflow(long long a, long long b)
     {
-      if (b > 0 && a > std::numeric_limits<long long>::max() - b)
+      if (b > 0 && a > std::numeric_limits< long long >::max() - b)
       {
         return true;
       }
-      if (b < 0 && a < std::numeric_limits<long long>::min() - b)
+      if (b < 0 && a < std::numeric_limits< long long >::min() - b)
       {
         return true;
       }
@@ -28,11 +26,11 @@ namespace chernikov
 
     inline bool willSubOverflow(long long a, long long b)
     {
-      if (b < 0 && a > std::numeric_limits<long long>::max() + b)
+      if (b < 0 && a > std::numeric_limits< long long >::max() + b)
       {
         return true;
       }
-      if (b > 0 && a < std::numeric_limits<long long>::min() + b)
+      if (b > 0 && a < std::numeric_limits< long long >::min() + b)
       {
         return true;
       }
@@ -45,19 +43,19 @@ namespace chernikov
       {
         return false;
       }
-      if (a > 0 && b > 0 && a > std::numeric_limits<long long>::max() / b)
+      if (a > 0 && b > 0 && a > std::numeric_limits< long long >::max() / b)
       {
         return true;
       }
-      if (a > 0 && b < 0 && b < std::numeric_limits<long long>::min() / a)
+      if (a > 0 && b < 0 && b < std::numeric_limits< long long >::min() / a)
       {
         return true;
       }
-      if (a < 0 && b > 0 && a < std::numeric_limits<long long>::min() / b)
+      if (a < 0 && b > 0 && a < std::numeric_limits< long long >::min() / b)
       {
         return true;
       }
-      if (a < 0 && b < 0 && a < std::numeric_limits<long long>::max() / b)
+      if (a < 0 && b < 0 && a < std::numeric_limits< long long >::max() / b)
       {
         return true;
       }
@@ -103,8 +101,7 @@ namespace chernikov
 
     inline bool isOperator(const std::string &token)
     {
-      return token == "+" || token == "-" || token == "*" ||
-             token == "/" || token == "%";
+      return token == "+" || token == "-" || token == "*" || token == "/" || token == "%";
     }
 
     inline long long modPositive(long long a, long long b)
@@ -117,24 +114,22 @@ namespace chernikov
       return result;
     }
 
-    Queue<std::string> infixToPostfix(const std::string &expression)
+    Queue< std::string > infixToPostfix(const std::string &expression)
     {
       std::istringstream iss(expression);
       std::string token;
-      Stack<char> operators;
-      Queue<std::string> output;
+      Stack< char > operators;
+      Queue< std::string > output;
 
       while (iss >> token)
       {
         if (isNumber(token))
         {
           output.push(token);
-        }
-        else if (token == "(")
+        } else if (token == "(")
         {
           operators.push('(');
-        }
-        else if (token == ")")
+        } else if (token == ")")
         {
           while (!operators.empty() && operators.top() != '(')
           {
@@ -146,19 +141,16 @@ namespace chernikov
             throw std::logic_error("Incorrect close bracket or missed open bracket");
           }
           operators.drop();
-        }
-        else if (isOperator(token))
+        } else if (isOperator(token))
         {
           char op = token[0];
-          while (!operators.empty() && operators.top() != '(' &&
-                 getPriority(operators.top()) >= getPriority(op))
+          while (!operators.empty() && operators.top() != '(' && getPriority(operators.top()) >= getPriority(op))
           {
             output.push(std::string(1, operators.top()));
             operators.drop();
           }
           operators.push(op);
-        }
-        else
+        } else
         {
           throw std::logic_error("Invalid token: " + token);
         }
@@ -177,9 +169,9 @@ namespace chernikov
       return output;
     }
 
-    long long evaluatePostfix(Queue<std::string> &postfix)
+    long long evaluatePostfix(Queue< std::string > &postfix)
     {
-      Stack<long long> values;
+      Stack< long long > values;
 
       while (!postfix.empty())
       {
@@ -192,13 +184,11 @@ namespace chernikov
           {
             long long value = std::stoll(token);
             values.push(value);
-          }
-          catch (const std::out_of_range &)
+          } catch (const std::out_of_range &)
           {
             throw std::logic_error("Number out of range: " + token);
           }
-        }
-        else if (isOperator(token))
+        } else if (isOperator(token))
         {
           if (values.size() < 2)
           {
@@ -256,8 +246,7 @@ namespace chernikov
           }
 
           values.push(result);
-        }
-        else
+        } else
         {
           throw std::logic_error("Invalid token: " + token);
         }
@@ -279,7 +268,7 @@ namespace chernikov
       throw std::logic_error("Empty expression");
     }
 
-    Queue<std::string> postfix = detail::infixToPostfix(expression);
+    Queue< std::string > postfix = detail::infixToPostfix(expression);
     return detail::evaluatePostfix(postfix);
   }
 }
