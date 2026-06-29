@@ -102,7 +102,13 @@ void cmd_print(DictMap &dicts, const std::string &name)
 
 void cmd_complement(DictMap &dicts, const std::string &new_name, const std::string &name1, const std::string &name2)
 {
-  if (!dicts.has(name1) || !dicts.has(name2) || dicts.has(new_name))
+  if (!dicts.has(name1) || !dicts.has(name2))
+  {
+    std::cout << "<INVALID COMMAND>\n";
+    return;
+  }
+
+  if (dicts.has(new_name) && new_name != name1 && new_name != name2)
   {
     std::cout << "<INVALID COMMAND>\n";
     return;
@@ -121,12 +127,22 @@ void cmd_complement(DictMap &dicts, const std::string &new_name, const std::stri
     }
   }
 
+  if (dicts.has(new_name))
+  {
+    dicts.drop(new_name);
+  }
   dicts.push(new_name, result);
 }
 
 void cmd_intersect(DictMap &dicts, const std::string &new_name, const std::string &name1, const std::string &name2)
 {
-  if (!dicts.has(name1) || !dicts.has(name2) || dicts.has(new_name))
+  if (!dicts.has(name1) || !dicts.has(name2))
+  {
+    std::cout << "<INVALID COMMAND>\n";
+    return;
+  }
+
+  if (dicts.has(new_name) && new_name != name1 && new_name != name2)
   {
     std::cout << "<INVALID COMMAND>\n";
     return;
@@ -145,12 +161,22 @@ void cmd_intersect(DictMap &dicts, const std::string &new_name, const std::strin
     }
   }
 
+  if (dicts.has(new_name))
+  {
+    dicts.drop(new_name);
+  }
   dicts.push(new_name, result);
 }
 
 void cmd_union(DictMap &dicts, const std::string &new_name, const std::string &name1, const std::string &name2)
 {
-  if (!dicts.has(name1) || !dicts.has(name2) || dicts.has(new_name))
+  if (!dicts.has(name1) || !dicts.has(name2))
+  {
+    std::cout << "<INVALID COMMAND>\n";
+    return;
+  }
+
+  if (dicts.has(new_name) && new_name != name1 && new_name != name2)
   {
     std::cout << "<INVALID COMMAND>\n";
     return;
@@ -175,6 +201,10 @@ void cmd_union(DictMap &dicts, const std::string &new_name, const std::string &n
     }
   }
 
+  if (dicts.has(new_name))
+  {
+    dicts.drop(new_name);
+  }
   dicts.push(new_name, result);
 }
 
@@ -204,17 +234,20 @@ int main(int argc, char *argv[])
       continue;
 
     SplitResult tokens = split(line);
-    if (tokens.count < 3)
+    if (tokens.count < 1)
       continue;
 
     std::string dict_name = tokens.parts[0];
     Dictionary dict;
 
-    for (size_t i = 1; i + 1 < tokens.count; i += 2)
+    if (tokens.count >= 3)
     {
-      int key = string_to_int(tokens.parts[i]);
-      std::string value = tokens.parts[i + 1];
-      dict.push(key, value);
+      for (size_t i = 1; i + 1 < tokens.count; i += 2)
+      {
+        int key = string_to_int(tokens.parts[i]);
+        std::string value = tokens.parts[i + 1];
+        dict.push(key, value);
+      }
     }
 
     dicts.push(dict_name, dict);
