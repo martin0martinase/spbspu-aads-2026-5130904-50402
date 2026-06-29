@@ -67,8 +67,8 @@ double QuadTree::getPixel(void *context, PixelGetter getter, int x, int y)
   return getPixelRec(root, context, getter, x, y);
 }
 
-void QuadTree::findSourcesRec(QuadNode *node, void *context, PixelGetter getter,
-                              double threshold, std::vector<Source> &result)
+void QuadTree::findSourcesRec(QuadNode *node, void *context, PixelGetter getter, double threshold,
+                              std::vector< Source > &result)
 {
   if (node->avgBrightness < threshold)
     return;
@@ -86,8 +86,7 @@ void QuadTree::findSourcesRec(QuadNode *node, void *context, PixelGetter getter,
           result.push_back({px, py, brightness});
       }
     }
-  }
-  else
+  } else
   {
     for (int i = 0; i < 4; i++)
       if (node->children[i] != nullptr)
@@ -95,9 +94,9 @@ void QuadTree::findSourcesRec(QuadNode *node, void *context, PixelGetter getter,
   }
 }
 
-std::vector<Source> QuadTree::findSources(void *context, PixelGetter getter, double threshold)
+std::vector< Source > QuadTree::findSources(void *context, PixelGetter getter, double threshold)
 {
-  std::vector<Source> result;
+  std::vector< Source > result;
   if (root == nullptr)
   {
     std::cerr << "Error: QuadTree not built. Use BUILD_TREE first." << std::endl;

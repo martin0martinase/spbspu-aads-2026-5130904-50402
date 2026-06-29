@@ -12,8 +12,14 @@ struct BstNode
   BstNode *left;
   BstNode *right;
 
-  BstNode(const std::string &k, const std::string &v, const std::string &c = "")
-      : key(k), value(v), comment(c), left(nullptr), right(nullptr) {}
+  BstNode(const std::string &k, const std::string &v, const std::string &c = ""):
+    key(k),
+    value(v),
+    comment(c),
+    left(nullptr),
+    right(nullptr)
+  {
+  }
 };
 
 class BinarySearchTree
@@ -53,7 +59,7 @@ class BinarySearchTree
       return;
     inOrderRec(node->left);
     std::cout << node->key;
-    int padding = 8 - static_cast<int>(node->key.length());
+    int padding = 8 - static_cast< int >(node->key.length());
     for (int i = 0; i < padding; i++)
       std::cout << " ";
     std::cout << "= " << node->value;
@@ -63,7 +69,7 @@ class BinarySearchTree
     inOrderRec(node->right);
   }
 
-  void toVectorRec(BstNode *node, std::vector<std::pair<std::string, std::string>> &vec) const
+  void toVectorRec(BstNode *node, std::vector< std::pair< std::string, std::string > > &vec) const
   {
     if (node == nullptr)
       return;
@@ -92,10 +98,17 @@ class BinarySearchTree
   }
 
 public:
-  BinarySearchTree() : root(nullptr) {}
-  ~BinarySearchTree() { destroyRec(root); }
+  BinarySearchTree():
+    root(nullptr)
+  {
+  }
+  ~BinarySearchTree()
+  {
+    destroyRec(root);
+  }
 
-  BinarySearchTree(const BinarySearchTree &other) : root(nullptr)
+  BinarySearchTree(const BinarySearchTree &other):
+    root(nullptr)
   {
     root = copyRec(other.root);
   }
@@ -131,9 +144,9 @@ public:
     inOrderRec(root);
   }
 
-  std::vector<std::pair<std::string, std::string>> toVector() const
+  std::vector< std::pair< std::string, std::string > > toVector() const
   {
-    std::vector<std::pair<std::string, std::string>> result;
+    std::vector< std::pair< std::string, std::string > > result;
     toVectorRec(root, result);
     return result;
   }
