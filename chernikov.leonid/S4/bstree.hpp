@@ -8,11 +8,13 @@
 namespace chernikov {
 
   template < typename Key, typename Value > class BSTIterator;
-
   template < typename Key, typename Value > class BSTConstIterator;
 
   template < typename Key, typename Value, typename Compare = std::less< Key > > class BSTree
   {
+    friend class BSTIterator< Key, Value >;
+    friend class BSTConstIterator< Key, Value >;
+
   public:
     using key_type = Key;
     using value_type = Value;
@@ -226,7 +228,12 @@ namespace chernikov {
 
     const Value &get(const Key &k) const
     {
-      return const_cast< BSTree * >(this)->get(k);
+      Node *node = find_node(k);
+      if (!node)
+      {
+        throw std::out_of_range("Key not found in BSTree::get()");
+      }
+      return node->value;
     }
 
     Value drop(const Key &k)
@@ -479,13 +486,12 @@ namespace chernikov {
 
   template < typename Key, typename Value > class BSTIterator
   {
-  public:
     friend class BSTree< Key, Value >;
     friend class BSTConstIterator< Key, Value >;
 
+  private:
     using Node = typename BSTree< Key, Value >::Node;
 
-  private:
     Node *node_;
 
     explicit BSTIterator(Node *node):
@@ -550,14 +556,13 @@ namespace chernikov {
 
   template < typename Key, typename Value > class BSTConstIterator
   {
-  public:
     friend class BSTree< Key, Value >;
 
+  private:
     using Node = typename BSTree< Key, Value >::Node;
 
     const Node *node_;
 
-  private:
     explicit BSTConstIterator(const Node *node):
       node_(node)
     {
