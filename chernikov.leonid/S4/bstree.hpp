@@ -131,8 +131,11 @@ namespace chernikov {
 
     ~BSTree()
     {
-      clear();
-      delete fake_root_;
+      if (fake_root_)
+      {
+        clear_recursive(fake_root_->left);
+        delete fake_root_;
+      }
     }
 
     BSTree(const BSTree &other):
@@ -165,7 +168,7 @@ namespace chernikov {
     {
       if (this != &other)
       {
-        clear();
+        clear_recursive(fake_root_->left);
         delete fake_root_;
         fake_root_ = other.fake_root_;
         size_ = other.size_;
