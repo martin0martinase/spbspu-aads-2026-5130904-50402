@@ -30,27 +30,25 @@ namespace chernikov {
       Node *right;
       Node *parent;
       size_t height;
-      bool is_fake;
 
-      Node(const Key &k, const Value &v, Node *p = nullptr, bool fake = false):
+      Node(const Key &k, const Value &v, Node *p = nullptr):
         key(k),
         value(v),
         left(nullptr),
         right(nullptr),
         parent(p),
-        height(fake ? 0 : 1),
-        is_fake(fake)
+        height(1)
       {
       }
     };
 
-    Node *fake_root_;
+    Node *root_;
     size_t size_;
     Compare comp_;
 
     void update_height(Node *node)
     {
-      if (!node || node->is_fake)
+      if (!node)
         return;
       size_t left_h = node->left ? node->left->height : 0;
       size_t right_h = node->right ? node->right->height : 0;
@@ -59,7 +57,7 @@ namespace chernikov {
 
     Node *find_node(const Key &k) const
     {
-      Node *current = fake_root_->left;
+      Node *current = root_;
       while (current)
       {
         if (comp_(k, current->key))
@@ -87,25 +85,38 @@ namespace chernikov {
       return node;
     }
 
+    Node *find_max(Node *node) const
+    {
+      if (!node)
+        return nullptr;
+      while (node->right)
+      {
+        node = node->right;
+      }
+      return node;
+    }
+
     void transplant(Node *old_node, Node *new_node)
     {
-      Node *parent = old_node->parent;
-      if (old_node == parent->left)
+      if (!old_node->parent)
       {
-        parent->left = new_node;
+        root_ = new_node;
+      } else if (old_node == old_node->parent->left)
+      {
+        old_node->parent->left = new_node;
       } else
       {
-        parent->right = new_node;
+        old_node->parent->right = new_node;
       }
       if (new_node)
       {
-        new_node->parent = parent;
+        new_node->parent = old_node->parent;
       }
     }
 
     void update_heights_up(Node *node)
     {
-      while (node && !node->is_fake)
+      while (node)
       {
         update_height(node);
         node = node->parent;
@@ -114,36 +125,28 @@ namespace chernikov {
 
   public:
     BSTree():
+      root_(nullptr),
       size_(0)
     {
-      fake_root_ = new Node(Key(), Value(), nullptr, true);
     }
 
     ~BSTree()
     {
-      if (fake_root_)
-      {
-        clear_recursive(fake_root_->left);
-        delete fake_root_;
-      }
+      clear();
     }
 
     BSTree(const BSTree &other):
+      root_(nullptr),
       size_(0)
     {
-      fake_root_ = new Node(Key(), Value(), nullptr, true);
-      if (other.fake_root_ && other.fake_root_->left)
-      {
-        fake_root_->left = copy_recursive(other.fake_root_->left, fake_root_);
-        size_ = other.size_;
-      }
+      copy_from(other);
     }
 
     BSTree(BSTree &&other) noexcept:
-      fake_root_(other.fake_root_),
+      root_(other.root_),
       size_(other.size_)
     {
-      other.fake_root_ = nullptr;
+      other.root_ = nullptr;
       other.size_ = 0;
     }
 
@@ -152,11 +155,7 @@ namespace chernikov {
       if (this != &other)
       {
         clear();
-        if (other.fake_root_ && other.fake_root_->left)
-        {
-          fake_root_->left = copy_recursive(other.fake_root_->left, fake_root_);
-          size_ = other.size_;
-        }
+        copy_from(other);
       }
       return *this;
     }
@@ -165,13 +164,10 @@ namespace chernikov {
     {
       if (this != &other)
       {
-        clear_recursive(fake_root_->left);
-        fake_root_->left = nullptr;
-        size_ = 0;
-        delete fake_root_;
-        fake_root_ = other.fake_root_;
+        clear();
+        root_ = other.root_;
         size_ = other.size_;
-        other.fake_root_ = nullptr;
+        other.root_ = nullptr;
         other.size_ = 0;
       }
       return *this;
@@ -181,16 +177,15 @@ namespace chernikov {
     {
       Node *new_node = new Node(k, v);
 
-      if (!fake_root_->left)
+      if (!root_)
       {
-        fake_root_->left = new_node;
-        new_node->parent = fake_root_;
+        root_ = new_node;
         size_ = 1;
         return;
       }
 
-      Node *current = fake_root_->left;
-      Node *parent = fake_root_;
+      Node *current = root_;
+      Node *parent = nullptr;
 
       while (current)
       {
@@ -274,9 +269,6 @@ namespace chernikov {
           {
             successor->right->parent = successor;
           }
-        } else
-        {
-          succ_parent = successor;
         }
 
         transplant(node, successor);
@@ -286,7 +278,13 @@ namespace chernikov {
           successor->left->parent = successor;
         }
 
-        update_heights_up(succ_parent);
+        if (succ_parent == node)
+        {
+          update_heights_up(successor);
+        } else
+        {
+          update_heights_up(succ_parent);
+        }
       }
 
       delete node;
@@ -301,8 +299,8 @@ namespace chernikov {
 
     void clear()
     {
-      clear_recursive(fake_root_->left);
-      fake_root_->left = nullptr;
+      clear_recursive(root_);
+      root_ = nullptr;
       size_ = 0;
     }
 
@@ -317,7 +315,7 @@ namespace chernikov {
 
     iterator begin()
     {
-      return iterator(fake_root_->left ? find_min(fake_root_->left) : nullptr);
+      return iterator(find_min(root_));
     }
 
     iterator end()
@@ -327,7 +325,7 @@ namespace chernikov {
 
     const_iterator begin() const
     {
-      return const_iterator(fake_root_->left ? find_min(fake_root_->left) : nullptr);
+      return const_iterator(find_min(root_));
     }
 
     const_iterator end() const
@@ -338,7 +336,7 @@ namespace chernikov {
     const_iterator rotateLeft(const_iterator it)
     {
       Node *node = const_cast< Node * >(it.node_);
-      if (!node || node->is_fake || !node->right)
+      if (!node || !node->right)
         return it;
 
       Node *new_root = node->right;
@@ -351,7 +349,10 @@ namespace chernikov {
       }
 
       new_root->parent = parent;
-      if (node == parent->left)
+      if (!parent)
+      {
+        root_ = new_root;
+      } else if (node == parent->left)
       {
         parent->left = new_root;
       } else
@@ -364,7 +365,8 @@ namespace chernikov {
 
       update_height(node);
       update_height(new_root);
-      update_height(parent);
+      if (parent)
+        update_height(parent);
 
       return const_iterator(node);
     }
@@ -372,7 +374,7 @@ namespace chernikov {
     const_iterator rotateRight(const_iterator it)
     {
       Node *node = const_cast< Node * >(it.node_);
-      if (!node || node->is_fake || !node->left)
+      if (!node || !node->left)
         return it;
 
       Node *new_root = node->left;
@@ -385,7 +387,10 @@ namespace chernikov {
       }
 
       new_root->parent = parent;
-      if (node == parent->left)
+      if (!parent)
+      {
+        root_ = new_root;
+      } else if (node == parent->left)
       {
         parent->left = new_root;
       } else
@@ -398,7 +403,8 @@ namespace chernikov {
 
       update_height(node);
       update_height(new_root);
-      update_height(parent);
+      if (parent)
+        update_height(parent);
 
       return const_iterator(node);
     }
@@ -406,7 +412,7 @@ namespace chernikov {
     const_iterator rotateLargeLeft(const_iterator it)
     {
       Node *node = const_cast< Node * >(it.node_);
-      if (!node || node->is_fake || !node->right)
+      if (!node || !node->right)
         return it;
       if (!node->right->left)
         return rotateLeft(it);
@@ -418,7 +424,7 @@ namespace chernikov {
     const_iterator rotateLargeRight(const_iterator it)
     {
       Node *node = const_cast< Node * >(it.node_);
-      if (!node || node->is_fake || !node->left)
+      if (!node || !node->left)
         return it;
       if (!node->left->right)
         return rotateRight(it);
@@ -429,14 +435,14 @@ namespace chernikov {
 
     size_t height(const_iterator it) const
     {
-      if (!it.node_ || it.node_->is_fake)
+      if (!it.node_)
         return 0;
       return it.node_->height;
     }
 
     size_t height() const
     {
-      return fake_root_->left ? fake_root_->left->height : 0;
+      return root_ ? root_->height : 0;
     }
 
     const_iterator find(const Key &k) const
@@ -457,6 +463,12 @@ namespace chernikov {
       clear_recursive(node->left);
       clear_recursive(node->right);
       delete node;
+    }
+
+    void copy_from(const BSTree &other)
+    {
+      root_ = copy_recursive(other.root_, nullptr);
+      size_ = other.size_;
     }
 
     Node *copy_recursive(Node *other_node, Node *parent)
@@ -515,19 +527,12 @@ namespace chernikov {
       } else
       {
         Node *parent = node_->parent;
-        while (parent && parent->right && node_ == parent->right)
+        while (parent && node_ == parent->right)
         {
           node_ = parent;
           parent = parent->parent;
         }
-        if (parent && node_ == parent->left)
-        {
-          node_ = parent;
-        }
-        else
-        {
-          node_ = nullptr;
-        }
+        node_ = parent;
       }
       return *this;
     }
@@ -595,19 +600,12 @@ namespace chernikov {
       } else
       {
         const Node *parent = node_->parent;
-        while (parent && parent->right && node_ == parent->right)
+        while (parent && node_ == parent->right)
         {
           node_ = parent;
           parent = parent->parent;
         }
-        if (parent && node_ == parent->left)
-        {
-          node_ = parent;
-        }
-        else
-        {
-          node_ = nullptr;
-        }
+        node_ = parent;
       }
       return *this;
     }
