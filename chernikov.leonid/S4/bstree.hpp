@@ -85,17 +85,6 @@ namespace chernikov {
       return node;
     }
 
-    Node *find_max(Node *node) const
-    {
-      if (!node)
-        return nullptr;
-      while (node->right)
-      {
-        node = node->right;
-      }
-      return node;
-    }
-
     void transplant(Node *old_node, Node *new_node)
     {
       Node *parent = old_node->parent;
@@ -143,7 +132,11 @@ namespace chernikov {
     {
       fake_root_ = new Node(Key(), Value(), nullptr);
       fake_root_->height = 0;
-      copy_from(other);
+      if (other.fake_root_ && other.fake_root_->left)
+      {
+        fake_root_->left = copy_recursive(other.fake_root_->left, fake_root_);
+        size_ = other.size_;
+      }
     }
 
     BSTree(BSTree &&other) noexcept:
@@ -159,7 +152,11 @@ namespace chernikov {
       if (this != &other)
       {
         clear();
-        copy_from(other);
+        if (other.fake_root_ && other.fake_root_->left)
+        {
+          fake_root_->left = copy_recursive(other.fake_root_->left, fake_root_);
+          size_ = other.size_;
+        }
       }
       return *this;
     }
@@ -169,6 +166,8 @@ namespace chernikov {
       if (this != &other)
       {
         clear_recursive(fake_root_->left);
+        fake_root_->left = nullptr;
+        size_ = 0;
         delete fake_root_;
         fake_root_ = other.fake_root_;
         size_ = other.size_;
@@ -275,6 +274,9 @@ namespace chernikov {
           {
             successor->right->parent = successor;
           }
+        } else
+        {
+          succ_parent = successor;
         }
 
         transplant(node, successor);
@@ -284,13 +286,7 @@ namespace chernikov {
           successor->left->parent = successor;
         }
 
-        if (succ_parent == node)
-        {
-          update_heights_up(successor);
-        } else
-        {
-          update_heights_up(succ_parent);
-        }
+        update_heights_up(succ_parent);
       }
 
       delete node;
@@ -463,12 +459,6 @@ namespace chernikov {
       delete node;
     }
 
-    void copy_from(const BSTree &other)
-    {
-      fake_root_->left = copy_recursive(other.fake_root_->left, fake_root_);
-      size_ = other.size_;
-    }
-
     Node *copy_recursive(Node *other_node, Node *parent)
     {
       if (!other_node)
@@ -530,8 +520,10 @@ namespace chernikov {
           node_ = parent;
           parent = parent->parent;
         }
-        node_ = (parent && parent->left && node_ == parent->left) ? nullptr : parent;
-        if (node_ && !node_->parent)
+        if (parent && parent->left && node_ == parent->left)
+        {
+          node_ = parent;
+        } else
         {
           node_ = nullptr;
         }
@@ -607,8 +599,10 @@ namespace chernikov {
           node_ = parent;
           parent = parent->parent;
         }
-        node_ = (parent && parent->left && node_ == parent->left) ? nullptr : parent;
-        if (node_ && !node_->parent)
+        if (parent && parent->left && node_ == parent->left)
+        {
+          node_ = parent;
+        } else
         {
           node_ = nullptr;
         }
