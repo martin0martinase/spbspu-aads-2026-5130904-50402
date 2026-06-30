@@ -238,6 +238,7 @@ namespace chernikov {
     tree.push(70, "C");
 
     auto it = tree.find(50);
+    BOOST_REQUIRE(it != tree.end());
     tree.rotateRight(it);
 
     BOOST_CHECK_EQUAL(tree.height(), 3);
@@ -258,6 +259,7 @@ namespace chernikov {
     tree.push(70, "C");
 
     auto it = tree.find(30);
+    BOOST_REQUIRE(it != tree.end());
     tree.rotateLeft(it);
 
     BOOST_CHECK(tree.has(20));
@@ -279,6 +281,7 @@ namespace chernikov {
     tree.push(80, "C");
 
     auto it = tree.find(50);
+    BOOST_REQUIRE(it != tree.end());
     tree.rotateLargeRight(it);
 
     BOOST_CHECK(tree.has(30));
@@ -302,6 +305,7 @@ namespace chernikov {
     tree.push(90, "C");
 
     auto it = tree.find(50);
+    BOOST_REQUIRE(it != tree.end());
     tree.rotateLargeLeft(it);
 
     BOOST_CHECK(tree.has(30));
@@ -321,6 +325,7 @@ namespace chernikov {
     tree.push(70, "seventy");
 
     auto it30 = tree.find(30);
+    BOOST_REQUIRE(it30 != tree.end());
     BOOST_CHECK_EQUAL((*it30).second, "thirty");
 
     tree.rotateRight(tree.find(50));
