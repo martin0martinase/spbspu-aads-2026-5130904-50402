@@ -520,10 +520,11 @@ namespace chernikov {
           node_ = parent;
           parent = parent->parent;
         }
-        if (parent && parent->left && node_ == parent->left)
+        if (parent && node_ == parent->left)
         {
           node_ = parent;
-        } else
+        }
+        else
         {
           node_ = nullptr;
         }
@@ -599,10 +600,11 @@ namespace chernikov {
           node_ = parent;
           parent = parent->parent;
         }
-        if (parent && parent->left && node_ == parent->left)
+        if (parent && node_ == parent->left)
         {
           node_ = parent;
-        } else
+        }
+        else
         {
           node_ = nullptr;
         }
