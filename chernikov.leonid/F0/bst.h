@@ -1,4 +1,6 @@
-#pragma once
+#ifndef BST_H
+#define BST_H
+
 #include <string>
 #include <vector>
 #include <utility>
@@ -74,7 +76,7 @@ class BinarySearchTree
     if (node == nullptr)
       return;
     toVectorRec(node->left, vec);
-    vec.push_back({node->key, node->value});
+    vec.push_back(std::make_pair(node->key, node->value));
     toVectorRec(node->right, vec);
   }
 
@@ -151,3 +153,5 @@ public:
     return result;
   }
 };
+
+#endif

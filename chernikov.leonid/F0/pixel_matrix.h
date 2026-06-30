@@ -1,4 +1,6 @@
-#pragma once
+#ifndef PIXEL_MATRIX_H
+#define PIXEL_MATRIX_H
+
 #include <vector>
 #include <cstddef>
 #include <algorithm>
@@ -73,3 +75,5 @@ public:
     return std::sqrt(sumSq / data.size());
   }
 };
+
+#endif

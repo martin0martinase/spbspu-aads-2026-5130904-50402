@@ -130,32 +130,32 @@ bool FitsFile::readData(std::ifstream &file, int headerBlocks)
       dataType = PixelType::INT16;
       data_int16.resize(totalPixels);
       file.read(reinterpret_cast< char * >(data_int16.data()), dataBytes);
-      for (auto &v : data_int16)
-        swapBytes(v);
+      for (size_t i = 0; i < data_int16.size(); i++)
+        swapBytes(data_int16[i]);
       break;
     }
     case 32: {
       dataType = PixelType::INT32;
       data_int32.resize(totalPixels);
       file.read(reinterpret_cast< char * >(data_int32.data()), dataBytes);
-      for (auto &v : data_int32)
-        swapBytes(v);
+      for (size_t i = 0; i < data_int32.size(); i++)
+        swapBytes(data_int32[i]);
       break;
     }
     case -32: {
       dataType = PixelType::FLOAT32;
       data_float32.resize(totalPixels);
       file.read(reinterpret_cast< char * >(data_float32.data()), dataBytes);
-      for (auto &v : data_float32)
-        swapBytes(v);
+      for (size_t i = 0; i < data_float32.size(); i++)
+        swapBytes(data_float32[i]);
       break;
     }
     case -64: {
       dataType = PixelType::FLOAT64;
       data_float64.resize(totalPixels);
       file.read(reinterpret_cast< char * >(data_float64.data()), dataBytes);
-      for (auto &v : data_float64)
-        swapBytes(v);
+      for (size_t i = 0; i < data_float64.size(); i++)
+        swapBytes(data_float64[i]);
       break;
     }
     default:
@@ -268,12 +268,14 @@ void FitsFile::writeHeader(std::ostream &out) const
   std::string headerStr;
   std::vector< std::pair< std::string, std::string > > headerVec = header.toVector();
 
-  for (const auto &[key, value] : headerVec)
+  for (size_t i = 0; i < headerVec.size(); i++)
   {
+    const std::string &key = headerVec[i].first;
+    const std::string &value = headerVec[i].second;
     std::string line(80, ' ');
 
-    for (size_t i = 0; i < std::min(key.length(), size_t(8)); i++)
-      line[i] = key[i];
+    for (size_t j = 0; j < std::min(key.length(), size_t(8)); j++)
+      line[j] = key[j];
 
     line[8] = '=';
     line[9] = ' ';
@@ -284,13 +286,13 @@ void FitsFile::writeHeader(std::ostream &out) const
     if (!valStr.empty())
     {
       bool isNum = true;
-      for (size_t i = 0; i < valStr.length(); i++)
+      for (size_t j = 0; j < valStr.length(); j++)
       {
-        if (i == 0 && (valStr[i] == '-' || valStr[i] == '+'))
+        if (j == 0 && (valStr[j] == '-' || valStr[j] == '+'))
           continue;
-        if (valStr[i] == '.')
+        if (valStr[j] == '.')
           continue;
-        if (valStr[i] >= '0' && valStr[i] <= '9')
+        if (valStr[j] >= '0' && valStr[j] <= '9')
           continue;
         if (valStr == "TRUE" || valStr == "FALSE")
         {
@@ -308,14 +310,14 @@ void FitsFile::writeHeader(std::ostream &out) const
     {
       line[10] = '\'';
       size_t maxLen = std::min(valStr.length(), size_t(65));
-      for (size_t i = 0; i < maxLen; i++)
-        line[11 + i] = valStr[i];
+      for (size_t j = 0; j < maxLen; j++)
+        line[11 + j] = valStr[j];
       line[11 + std::min(valStr.length(), size_t(65))] = '\'';
     } else
     {
       size_t maxLen = std::min(valStr.length(), size_t(70));
-      for (size_t i = 0; i < maxLen; i++)
-        line[10 + i] = valStr[i];
+      for (size_t j = 0; j < maxLen; j++)
+        line[10 + j] = valStr[j];
     }
 
     headerStr += line;
@@ -348,29 +350,29 @@ void FitsFile::writeData(std::ostream &out) const
     break;
   case 16: {
     std::vector< int16_t > temp = data_int16;
-    for (auto &v : temp)
-      swapBytes(v);
+    for (size_t i = 0; i < temp.size(); i++)
+      swapBytes(temp[i]);
     out.write(reinterpret_cast< const char * >(temp.data()), dataBytes);
     break;
   }
   case 32: {
     std::vector< int32_t > temp = data_int32;
-    for (auto &v : temp)
-      swapBytes(v);
+    for (size_t i = 0; i < temp.size(); i++)
+      swapBytes(temp[i]);
     out.write(reinterpret_cast< const char * >(temp.data()), dataBytes);
     break;
   }
   case -32: {
     std::vector< float > temp = data_float32;
-    for (auto &v : temp)
-      swapBytes(v);
+    for (size_t i = 0; i < temp.size(); i++)
+      swapBytes(temp[i]);
     out.write(reinterpret_cast< const char * >(temp.data()), dataBytes);
     break;
   }
   case -64: {
     std::vector< double > temp = data_float64;
-    for (auto &v : temp)
-      swapBytes(v);
+    for (size_t i = 0; i < temp.size(); i++)
+      swapBytes(temp[i]);
     out.write(reinterpret_cast< const char * >(temp.data()), dataBytes);
     break;
   }

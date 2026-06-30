@@ -83,7 +83,13 @@ void QuadTree::findSourcesRec(QuadNode *node, void *context, PixelGetter getter,
         int py = node->y + dy;
         double brightness = getter(context, px, py);
         if (brightness > threshold)
-          result.push_back({px, py, brightness});
+        {
+          Source s;
+          s.x = px;
+          s.y = py;
+          s.brightness = brightness;
+          result.push_back(s);
+        }
       }
     }
   } else

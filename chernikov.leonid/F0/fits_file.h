@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FITS_FILE_H
+#define FITS_FILE_H
+
 #include <string>
 #include <vector>
 #include <fstream>
@@ -74,3 +76,5 @@ private:
   void writeHeader(std::ostream &out) const;
   void writeData(std::ostream &out) const;
 };
+
+#endif

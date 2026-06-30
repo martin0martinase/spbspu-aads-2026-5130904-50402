@@ -1,4 +1,6 @@
-#pragma once
+#ifndef QUAD_TREE_H
+#define QUAD_TREE_H
+
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -65,3 +67,5 @@ public:
   std::vector< Source > findSources(void *context, PixelGetter getter, double threshold);
   void printStats() const;
 };
+
+#endif
